@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Administrador — Táchira GOO!!!</title>
+<style>
+:root{
+  --blue:#0052CC;
+  --blue-dark:#003D99;
+  --blue-pale:#E8F0FE;
+  --orange:#FF6B00;
+  --orange-pale:#FFF0E5;
+  --navy:#0A1628;
+  --navy-soft:#101F35;
+  --navy-line:#1E2E48;
+  --ink:#101828;
+  --gray-900:#101828;
+  --gray-700:#344054;
+  --gray-600:#475467;
+  --gray-400:#98A2B3;
+  --gray-200:#E4E7EC;
+  --gray-100:#F2F4F7;
+  --gray-50:#F9FAFB;
+  --success:#12B76A;
+  --success-pale:#E7F8EF;
+  --danger:#F04438;
+  --danger-pale:#FEECEB;
+  --warn:#F79009;
+  --warn-pale:#FFF5E5;
+  --radius:10px;
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  --sidebar-w: 248px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background:var(--gray-50);
+  color:var(--ink);
+  font-size:14px;
+  line-height:1.45;
+}
+.tabular{ font-variant-numeric: tabular-nums; font-feature-settings:"tnum" 1; }
+button{ font-family:inherit; cursor:pointer; }
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:8px;}
+.app{ display:flex; min-height:100vh; }
+.sidebar{
+  width:var(--sidebar-w);
+  background:var(--navy);
+  color:#C9D3E3;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  position:fixed;
+  top:0; left:0; bottom:0;
+  z-index:40;
+}
+.sidebar-brand{
+  display:flex; align-items:center; gap:10px;
+  padding:20px 20px 16px 20px;
+  border-bottom:1px solid var(--navy-line);
+}
+.sidebar-brand .mark{
+  width:34px;height:34px;border-radius:8px;
+  background:linear-gradient(135deg,var(--blue),var(--orange));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#fff;font-size:14px;flex-shrink:0;
+}
+.sidebar-brand .name{ font-weight:700; color:#fff; font-size:14.5px; letter-spacing:.2px; }
+.sidebar-brand .role{ font-size:11px; color:var(--orange); font-weight:700; text-transform:uppercase; letter-spacing:.6px; }
+.sidebar-nav{ flex:1; overflow-y:auto; padding:14px 10px; }
+.nav-eyebrow{
+  font-size:10.5px; text-transform:uppercase; letter-spacing:1px;
+  color:#5C6E8C; font-weight:700; padding:14px 10px 6px;
+}
+.nav-item{
+  display:flex; align-items:center; gap:11px;
+  padding:10px 12px; margin-bottom:2px;
+  border-radius:8px; color:#AEBBD1;
+  font-size:13.5px; font-weight:500;
+  cursor:pointer; border:none; background:none; width:100%; text-align:left;
+  position:relative;
+}
+.nav-item:hover{ background:var(--navy-soft); color:#fff; }
+.nav-item.active{ background:var(--navy-soft); color:#fff; }
+.nav-item.active::before{
+  content:""; position:absolute; left:-10px; top:8px; bottom:8px; width:3px;
+  background:var(--orange); border-radius:0 3px 3px 0;
+}
+.nav-item .ic{ width:18px;height:18px;flex-shrink:0; }
+.nav-item .badge-count{
+  margin-left:auto; background:var(--orange); color:#fff;
+  font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:20px;
+}
+.sidebar-foot{
+  padding:14px 16px; border-top:1px solid var(--navy-line);
+  display:flex; align-items:center; gap:10px;
+}
+.sidebar-foot .avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:13px; flex-shrink:0;
+}
+.sidebar-foot .who{ font-size:12.5px; color:#fff; font-weight:600; }
+.sidebar-foot .role2{ font-size:11px; color:#7C8CA8; }
+.main{ margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; min-width:0; }
+.topbar{
+  background:var(--navy);
+  color:#fff;
+  padding:0 28px;
+  height:38px;
+  display:flex; align-items:center; gap:28px;
+  font-size:12px; font-weight:600;
+  overflow:hidden; white-space:nowrap;
+  border-bottom:1px solid var(--navy-line);
+}
+.topbar .ticker-item{ display:flex; align-items:center; gap:6px; color:#AEBBD1; flex-shrink:0; }
+.topbar .ticker-item .dot{ width:6px;height:6px;border-radius:50%; }
+.topbar .ticker-item b{ color:#fff; font-weight:700; }
+.topbar .ticker-item.alert b{ color:var(--orange); }
+.topbar .live{ margin-left:auto; display:flex; align-items:center; gap:6px; color:#7C8CA8; font-size:11px; flex-shrink:0; }
+.pulse{ width:7px;height:7px;border-radius:50%; background:var(--success); animation:pulse 2s infinite; }
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(18,183,106,.55);}70%{box-shadow:0 0 0 6px rgba(18,183,106,0);}100%{box-shadow:0 0 0 0 rgba(18,183,106,0);}}
+.pageheader{
+  background:#fff; border-bottom:1px solid var(--gray-200);
+  padding:16px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+}
+.pageheader .titles .eyebrow{ font-size:11px; color:var(--gray-400); font-weight:700; text-transform:uppercase; letter-spacing:.6px; }
+.pageheader h1{ margin:2px 0 0; font-size:20px; font-weight:800; color:var(--ink); }
+.header-actions{ display:flex; gap:10px; align-items:center; }
+.search-box{
+  display:flex; align-items:center; gap:8px;
+  background:var(--gray-100); border:1px solid var(--gray-200); border-radius:8px;
+  padding:8px 12px; min-width:220px;
+}
+.search-box input{ border:none; background:none; outline:none; font-size:13px; width:100%; color:var(--ink); }
+.icon-btn{
+  width:36px;height:36px;border-radius:8px; border:1px solid var(--gray-200); background:#fff;
+  display:flex; align-items:center; justify-content:center; position:relative; color:var(--gray-600);
+}
+.icon-btn .dot-alert{ position:absolute; top:6px; right:6px; width:7px;height:7px;border-radius:50%; background:var(--orange); }
+.content{ padding:24px 28px 60px; flex:1; }
+.page{ display:none; }
+.page.active{ display:block; }
+.kpi-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:14px; margin-bottom:22px; }
+.kpi-card{
+  background:#fff; border:1px solid var(--gray-200); border-radius:var(--radius); padding:16px;
+  box-shadow:var(--shadow);
+}
+.kpi-card .lbl{ font-size:11.5px; color:var(--gray-600); font-weight:600; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
+.kpi-card .val{ font-size:24px; font-weight:800; color:var(--ink); }
+.kpi-card .sub{ font-size:11.5px; margin-top:4px; font-weight:600; }
+.kpi-card .sub.up{ color:var(--success); }
+.kpi-card .sub.warn{ color:var(--orange); }
+.kpi-card.accent{ border-color:var(--orange); background:var(--orange-pale); }
+.kpi-card.accent .val{ color:#B84B00; }
+.grid-2{ display:grid; grid-template-columns: 1.4fr 1fr; gap:16px; }
+.panel{
+  background:#fff; border:1px solid var(--gray-200); border-radius:var(--radius);
+  box-shadow:var(--shadow); overflow:hidden;
+}
+.panel-head{
+  padding:14px 18px; border-bottom:1px solid var(--gray-200);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.panel-head h3{ margin:0; font-size:14.5px; font-weight:700; color:var(--ink); }
+.panel-head .hint{ font-size:11.5px; color:var(--gray-400); }
+.panel-body{ padding:18px; }
+.barchart{ display:flex; align-items:flex-end; gap:10px; height:150px; padding-top:10px; }
+.barchart .bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
+.barchart .bar{ width:100%; max-width:34px; background:linear-gradient(180deg,var(--blue),var(--blue-dark)); border-radius:5px 5px 0 0; }
+.barchart .bar-label{ font-size:10.5px; color:var(--gray-400); font-weight:600; }
+.barchart .bar-val{ font-size:10.5px; color:var(--gray-600); font-weight:700; }
+.hbar-row{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.hbar-row .name{ width:150px; flex-shrink:0; font-size:12.5px; font-weight:600; color:var(--gray-700); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hbar-track{ flex:1; height:10px; background:var(--gray-100); border-radius:6px; overflow:hidden; }
+.hbar-fill{ height:100%; background:linear-gradient(90deg,var(--blue),#3B82F6); border-radius:6px; }
+.hbar-fill.orange{ background:linear-gradient(90deg,var(--orange),#FF9142); }
+.hbar-num{ width:64px; text-align:right; font-size:12px; font-weight:700; color:var(--ink); flex-shrink:0; }
+.alert-item{ display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--gray-100); }
+.alert-item:last-child{ border-bottom:none; }
+.alert-ic{ width:32px;height:32px;border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.alert-ic.warn{ background:var(--warn-pale); color:var(--warn); }
+.alert-ic.danger{ background:var(--danger-pale); color:var(--danger); }
+.alert-ic.info{ background:var(--blue-pale); color:var(--blue); }
+.alert-txt{ flex:1; min-width:0; }
+.alert-txt .t1{ font-size:13px; font-weight:600; color:var(--ink); }
+.alert-txt .t2{ font-size:11.5px; color:var(--gray-400); margin-top:2px; }
+.alert-link{ font-size:12px; font-weight:700; color:var(--blue); background:none; border:none; white-space:nowrap; }
+.toolbar{ display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+.select, .input{
+  border:1px solid var(--gray-200); background:#fff; border-radius:8px;
+  padding:9px 12px; font-size:13px; color:var(--gray-700); outline:none;
+}
+.select{ min-width:170px; }
+.input.search{ min-width:220px; }
+.spacer{ flex:1; }
+.btn{
+  border:none; border-radius:8px; padding:9px 16px; font-size:13px; font-weight:700;
+  display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
+}
+.btn-primary{ background:var(--blue); color:#fff; }
+.btn-primary:hover{ background:var(--blue-dark); }
+.btn-orange{ background:var(--orange); color:#fff; }
+.btn-orange:hover{ background:#E05F00; }
+.btn-outline{ background:#fff; color:var(--gray-700); border:1px solid var(--gray-200); }
+.btn-outline:hover{ background:var(--gray-50); }
+.btn-danger-outline{ background:#fff; color:var(--danger); border:1px solid #FDA29B; }
+.btn-success-outline{ background:#fff; color:var(--success); border:1px solid #A6F4C5; }
+.btn:disabled{ opacity:.5; cursor:default; }
+.btn.sm{ padding:6px 11px; font-size:12px; }
+.table-wrap{ overflow-x:auto; }
+table{ width:100%; border-collapse:collapse; font-size:13px; }
+thead th{
+  text-align:left; padding:10px 14px; background:var(--gray-50); color:var(--gray-600);
+  font-size:11px; text-transform:uppercase; letter-spacing:.4px; font-weight:700;
+  border-bottom:1px solid var(--gray-200); white-space:nowrap;
+}
+tbody td{ padding:12px 14px; border-bottom:1px solid var(--gray-100); color:var(--gray-700); white-space:nowrap; }
+tbody tr:hover{ background:var(--gray-50); }
+tbody tr:last-child td{ border-bottom:none; }
+.cell-strong{ color:var(--ink); font-weight:700; }
+.cell-sub{ font-size:11.5px; color:var(--gray-400); }
+.badge{
+  display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px;
+  font-size:11px; font-weight:700;
+}
+.badge .dot{ width:6px;height:6px;border-radius:50%; }
+.badge.b-green{ background:var(--success-pale); color:#067647; }
+.badge.b-green .dot{ background:var(--success); }
+.badge.b-orange{ background:var(--orange-pale); color:#B84B00; }
+.badge.b-orange .dot{ background:var(--orange); }
+.badge.b-red{ background:var(--danger-pale); color:#B42318; }
+.badge.b-red .dot{ background:var(--danger); }
+.badge.b-gray{ background:var(--gray-100); color:var(--gray-600); }
+.badge.b-gray .dot{ background:var(--gray-400); }
+.badge.b-blue{ background:var(--blue-pale); color:var(--blue-dark); }
+.badge.b-blue .dot{ background:var(--blue); }
+.stars{ color:var(--orange); font-size:12px; letter-spacing:1px; }
+.link-btn{ background:none; border:none; color:var(--blue); font-weight:700; font-size:12.5px; padding:0; }
+.link-btn:hover{ text-decoration:underline; }
+.row-actions{ display:flex; gap:8px; }
+.overlay{
+  position:fixed; inset:0; background:rgba(16,24,40,.45); z-index:90;
+  display:none; align-items:stretch; justify-content:flex-end;
+}
+.overlay.open{ display:flex; }
+.drawer{
+  width:560px; max-width:92vw; background:#fff; height:100%; overflow-y:auto;
+  box-shadow:-8px 0 30px rgba(16,24,40,.2); animation:slidein .18s ease;
+}
+@keyframes slidein{ from{ transform:translateX(24px); opacity:0;} to{ transform:translateX(0); opacity:1; } }
+.drawer-head{
+  padding:20px 24px; border-bottom:1px solid var(--gray-200);
+  display:flex; align-items:flex-start; justify-content:space-between; position:sticky; top:0; background:#fff; z-index:2;
+}
+.drawer-head .eyebrow{ font-size:11px; color:var(--gray-400); font-weight:700; text-transform:uppercase; }
+.drawer-head h2{ margin:4px 0 0; font-size:18px; font-weight:800; }
+.drawer-close{ background:var(--gray-100); border:none; width:32px;height:32px; border-radius:8px; font-size:16px; color:var(--gray-600); flex-shrink:0; }
+.drawer-body{ padding:20px 24px; }
+.dsection{ margin-bottom:22px; }
+.dsection h4{ font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--gray-400); font-weight:700; margin:0 0 10px; }
+.doc-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:var(--gray-50); border-radius:8px; margin-bottom:8px; }
+.doc-row .dname{ font-size:13px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:8px; }
+.kv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; }
+.kv .k{ font-size:11px; color:var(--gray-400); font-weight:600; }
+.kv .v{ font-size:13.5px; color:var(--ink); font-weight:700; margin-top:2px; }
+.textarea{ width:100%; border:1px solid var(--gray-200); border-radius:8px; padding:10px 12px; font-size:13px; font-family:inherit; resize:vertical; min-height:70px; outline:none; }
+.evidence-thumb{ width:100%; height:90px; border-radius:8px; background:var(--gray-100); display:flex; align-items:center; justify-content:center; color:var(--gray-400); font-size:11px; border:1px dashed var(--gray-200); }
+.tabs{ display:flex; gap:4px; border-bottom:1px solid var(--gray-200); margin-bottom:18px; }
+.tab-btn{ background:none; border:none; padding:10px 16px; font-size:13px; font-weight:700; color:var(--gray-400); border-bottom:2px solid transparent; margin-bottom:-1px; }
+.tab-btn.active{ color:var(--blue); border-bottom-color:var(--blue); }
+.tabpage{ display:none; }
+.tabpage.active{ display:block; }
+.form-row{ margin-bottom:18px; max-width:520px; }
+.form-row label{ display:block; font-size:12.5px; font-weight:700; color:var(--gray-700); margin-bottom:6px; }
+.form-row .desc{ font-size:11.5px; color:var(--gray-400); margin-top:5px; }
+.toggle-list{ display:flex; flex-direction:column; gap:2px; }
+.toggle-row{ display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--gray-100); }
+.toggle-row:last-child{ border-bottom:none; }
+.toggle-row .tname{ font-size:13px; font-weight:600; color:var(--ink); }
+.switch{ position:relative; width:40px; height:22px; flex-shrink:0; }
+.switch input{ opacity:0; width:0; height:0; }
+.slider{ position:absolute; inset:0; background:var(--gray-200); border-radius:20px; cursor:pointer; transition:.15s; }
+.slider::before{ content:""; position:absolute; width:16px;height:16px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.15s; box-shadow:0 1px 2px rgba(0,0,0,.2); }
+.switch input:checked + .slider{ background:var(--success); }
+.switch input:checked + .slider::before{ transform:translateX(18px); }
+#toast-wrap{ position:fixed; bottom:22px; right:22px; z-index:200; display:flex; flex-direction:column; gap:10px; }
+.toast{
+  background:var(--ink); color:#fff; padding:12px 18px; border-radius:9px; font-size:13px; font-weight:600;
+  box-shadow:0 8px 24px rgba(16,24,40,.25); display:flex; align-items:center; gap:10px; min-width:240px;
+  animation:toastin .18s ease;
+}
+.toast.success{ background:#0B4A2F; }
+.toast.warn{ background:#7A3E00; }
+@keyframes toastin{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:translateY(0);} }
+.empty-note{ text-align:center; padding:30px; color:var(--gray-400); font-size:13px; }
+@media (max-width: 1100px){
+  .kpi-grid{ grid-template-columns:repeat(3,1fr); }
+  .grid-2{ grid-template-columns:1fr; }
+}
+@media (max-width: 780px){
+  .sidebar{ transform:translateX(-100%); transition:.2s; }
+  .sidebar.open{ transform:translateX(0); }
+  .main{ margin-left:0; }
+  .kpi-grid{ grid-template-columns:repeat(2,1fr); }
+  .drawer{ width:100vw; }
+}
+.app{ display:none; }
+.app.unlocked{ display:flex; }
+#login-screen{
+  position:fixed; inset:0; z-index:500;
+  background:
+    radial-gradient(1100px 600px at 15% -10%, #14274A 0%, transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, #1B0F00 0%, transparent 55%),
+    var(--navy);
+  display:flex; align-items:center; justify-content:center;
+  padding:20px;
+}
+#login-screen.hidden{ display:none; }
+.login-card{
+  width:400px; max-width:100%;
+  background:#101F35;
+  border:1px solid var(--navy-line);
+  border-radius:14px;
+  padding:32px 30px 26px;
+  box-shadow:0 30px 80px rgba(0,0,0,.45);
+}
+.login-brand{ display:flex; align-items:center; gap:11px; margin-bottom:22px; }
+.login-brand .mark{ width:38px;height:38px;border-radius:9px; background:linear-gradient(135deg,var(--blue),var(--orange)); display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:15px; flex-shrink:0; }
+.login-brand .name{ color:#fff; font-weight:700; font-size:15px; }
+.login-brand .role{ font-size:10.5px; color:var(--orange); font-weight:700; text-transform:uppercase; letter-spacing:.6px; }
+.login-title{ color:#fff; font-size:19px; font-weight:800; margin:0 0 4px; }
+.login-sub{ color:#8A9AB8; font-size:12.5px; margin:0 0 22px; line-height:1.5; }
+.login-field{ margin-bottom:14px; }
+.login-field label{ display:block; font-size:11.5px; font-weight:700; color:#AEBBD1; margin-bottom:6px; }
+.login-input-wrap{ position:relative; }
+.login-input{
+  width:100%; background:#0A1628; border:1px solid #253958; color:#fff;
+  border-radius:8px; padding:11px 12px; font-size:13.5px; outline:none;
+  transition:border-color .15s, box-shadow .15s;
+}
+.login-input:focus{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(0,82,204,.25); }
+.login-input::placeholder{ color:#4C5C7A; letter-spacing:normal; font-weight:400; }
+.login-eye{ position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:#5C6E8C; padding:4px; }
+.login-error{
+  display:none; align-items:center; gap:8px; background:rgba(240,68,56,.12); border:1px solid rgba(240,68,56,.35);
+  color:#FF9086; font-size:12px; font-weight:600; padding:9px 12px; border-radius:8px; margin-bottom:14px;
+}
+.login-error.show{ display:flex; }
+.login-btn{
+  width:100%; background:var(--blue); color:#fff; border:none; border-radius:8px;
+  padding:12px; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.login-btn:hover{ background:var(--blue-dark); }
+.login-btn:disabled{ opacity:.5; }
+.login-meta-row{ display:flex; align-items:center; justify-content:space-between; margin:14px 0 4px; }
+.login-check{ display:flex; align-items:center; gap:8px; font-size:12px; color:#8A9AB8; }
+.login-check input{ accent-color:var(--blue); width:14px;height:14px; }
+.login-link{ background:none; border:none; color:#6FA3FF; font-size:12px; font-weight:600; }
+.login-security-note{
+  display:flex; gap:9px; background:#0A1628; border:1px solid #253958; border-radius:9px; padding:11px 12px; margin-top:16px;
+}
+.login-security-note svg{ flex-shrink:0; color:var(--success); margin-top:1px; }
+.login-security-note .txt{ font-size:11px; color:#7C8CA8; line-height:1.5; }
+.login-security-note b{ color:#AEBBD1; }
+.login-step{ display:none; }
+.login-step.active{ display:block; }
+.lockout-box{ text-align:center; padding:6px 0 4px; }
+.lockout-box .lic{ width:46px;height:46px;border-radius:50%; background:rgba(240,68,56,.12); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; color:#FF9086; }
+.lockout-box h3{ color:#fff; font-size:16px; margin:0 0 6px; }
+.lockout-box p{ color:#8A9AB8; font-size:12.5px; margin:0 0 4px; line-height:1.5; }
+.lockout-timer{ color:var(--orange); font-weight:800; font-size:20px; font-variant-numeric:tabular-nums; margin:14px 0; }
+.logout-btn{ margin-left:auto; background:none; border:none; color:#7C8CA8; padding:6px; border-radius:6px; }
+.logout-btn:hover{ color:var(--orange); background:var(--navy-soft); }
+#idle-lock{
+  position:fixed; inset:0; z-index:480; background:rgba(10,22,40,.72); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center;
+}
+#idle-lock.show{ display:flex; }
+.idle-card{ width:340px; background:#101F35; border:1px solid var(--navy-line); border-radius:14px; padding:26px; text-align:center; box-shadow:0 30px 80px rgba(0,0,0,.5); }
+.idle-card .avatar{ width:52px;height:52px;border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; margin:0 auto 12px; }
+.idle-card h3{ color:#fff; font-size:15px; margin:0 0 4px; }
+.idle-card p{ color:#8A9AB8; font-size:12px; margin:0 0 16px; }
+@media (max-width: 480px){
+  .login-card{ padding:26px 20px 22px; }
+}
+</style>
+</head>
+<body>
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-step active" id="step-credentials">
+      <div class="login-brand">
+        <div class="mark">TG</div>
+        <div><div class="name">Táchira GOO!!!</div><div class="role">Panel Admin</div></div>
+      </div>
+      <h1 class="login-title">Acceso restringido</h1>
+      <p class="login-sub">Este panel controla pagos, disputas y datos de proveedores. Inicia sesión con tu cuenta de administrador.</p>
+      <div class="login-error" id="login-error"></div>
+      <form id="form-credentials" autocomplete="off">
+        <div class="login-field">
+          <label for="login-email">Correo corporativo</label>
+          <input class="login-input" type="email" id="login-email" placeholder="admin@tachiragoo.com" autocomplete="username" required="">
+        </div>
+        <div class="login-field">
+          <label for="login-password">Contraseña</label>
+          <div class="login-input-wrap">
+            <input class="login-input" type="password" id="login-password" placeholder="••••••••••••" autocomplete="current-password" required="">
+            <button type="button" class="login-eye" id="toggle-pass">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
+        </div>
+        <div class="login-meta-row">
+          <label class="login-check"><input type="checkbox" id="remember-device">Confiar en este dispositivo 30 días</label>
+          <button type="button" class="login-link">¿Olvidaste tu clave?</button>
+        </div>
+        <button class="login-btn" type="submit" id="btn-continue" style="margin-top:6px;">
+          Continuar
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"></path></svg>
+        </button>
+      </form>
+      <div class="login-security-note">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+        <div class="txt"><b>Sesión protegida.</b> Bloqueo automático por intentos fallidos y cierre de sesión por inactividad.</div>
+      </div>
+    </div>
+    <div class="login-step" id="step-lockout">
+      <div class="lockout-box">
+        <div class="lic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+        <h3>Cuenta bloqueada temporalmente</h3>
+        <p>Detectamos demasiados intentos fallidos. Por seguridad, el acceso se bloqueó por unos minutos.</p>
+        <div class="lockout-timer" id="lockout-timer">05:00</div>
+        <p style="font-size:11.5px;">Si no fuiste tú, este intento quedó registrado en el log de auditoría.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="idle-lock">
+  <div class="idle-card">
+    <div class="avatar">MG</div>
+    <h3>Sesión bloqueada por inactividad</h3>
+    <p>Por seguridad, cerramos tu sesión activa tras varios minutos sin uso. Ingresa tu contraseña para continuar.</p>
+    <div class="login-error" id="idle-error"></div>
+    <form id="form-idle" autocomplete="off">
+      <div class="login-field" style="text-align:left;">
+        <input class="login-input" type="password" id="idle-password" placeholder="Contraseña" autocomplete="current-password" required="">
+      </div>
+      <button class="login-btn" type="submit">Desbloquear</button>
+    </form>
+    <button class="login-link" style="margin-top:12px;" id="idle-logout">Cerrar sesión completamente</button>
+  </div>
+</div>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="mark">TG</div>
+      <div>
+        <div class="name">Táchira GOO!!!</div>
+        <div class="role">Panel Admin</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-eyebrow">Operación</div>
+      <button class="nav-item active" data-page="dashboard">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+        Dashboard general
+      </button>
+      <button class="nav-item" data-page="proveedores">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-6h6v6"></path></svg>
+        Proveedores
+        <span class="badge-count" id="nav-count-proveedores">2</span>
+      </button>
+      <button class="nav-item" data-page="pagos">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+        Pagos y liquidaciones
+        <span class="badge-count" id="nav-count-pagos">7</span>
+      </button>
+      <button class="nav-item" data-page="disputas">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
+        Disputas
+        <span class="badge-count" id="nav-count-disputas">3</span>
+      </button>
+      <div class="nav-eyebrow">Personas</div>
+      <button class="nav-item" data-page="clientes">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+        Clientes
+      </button>
+      <button class="nav-item" data-page="reservas">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4"></path></svg>
+        Reservas (vista global)
+      </button>
+      <div class="nav-eyebrow">Plataforma</div>
+      <button class="nav-item" data-page="config">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"></path></svg>
+        Configuración
+      </button>
+      <button class="nav-item" data-page="reportes">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"></path></svg>
+        Reportes y analítica
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar">MG</div>
+      <div>
+        <div class="who">Manuel G.</div>
+        <div class="role2">Administrador</div>
+      </div>
+      <button class="logout-btn" id="btn-logout" title="Cerrar sesión">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="ticker-item"><span class="dot" style="background:#3B82F6"></span>GMV del mes <b class="tabular" id="ticker-gmv">$48.320</b></div>
+      <div class="ticker-item alert"><span class="dot" style="background:var(--orange)"></span>Disputas abiertas <b class="tabular" id="ticker-disputas">3</b></div>
+      <div class="ticker-item"><span class="dot" style="background:#3B82F6"></span>Pagos por liberar <b class="tabular" id="ticker-pagos">$5.880</b></div>
+      <div class="ticker-item"><span class="dot" style="background:#3B82F6"></span>Verificaciones pendientes <b class="tabular" id="ticker-verif">2</b></div>
+      <div class="live"><span class="pulse"></span> Datos de demostración — actualizado ahora</div>
+    </div>
+    <div class="pageheader">
+      <div class="titles">
+        <div class="eyebrow">Táchira GOO!!! · Panel Admin</div>
+        <h1 id="page-title">Dashboard general</h1>
+      </div>
+      <div class="header-actions">
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <input placeholder="Buscar proveedor, cliente, reserva…">
+        </div>
+        <button class="icon-btn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"></path><path d="M10 21a2 2 0 0 0 4 0"></path></svg><span class="dot-alert"></span></button>
+      </div>
+    </div>
+    <div class="content">
+      <section class="page active" id="page-dashboard">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="lbl">GMV total del mes</div><div class="val tabular">$48.320</div><div class="sub up">↑ 18% vs. mes anterior</div></div>
+          <div class="kpi-card"><div class="lbl">Reservas totales</div><div class="val tabular">312</div><div class="sub up">↑ 9% vs. mes anterior</div></div>
+          <div class="kpi-card"><div class="lbl">Proveedores activos</div><div class="val tabular">8</div><div class="sub" style="color:var(--gray-400)">de 10 registrados</div></div>
+          <div class="kpi-card"><div class="lbl">Clientes registrados</div><div class="val tabular">1.247</div><div class="sub up">↑ 64 esta semana</div></div>
+          <div class="kpi-card accent"><div class="lbl">Disputas abiertas</div><div class="val tabular">3</div><div class="sub warn">Requieren atención</div></div>
+          <div class="kpi-card accent"><div class="lbl">Pagos por liberar</div><div class="val tabular">$6.140</div><div class="sub warn">5 proveedores en cola</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="panel"><div class="panel-head"><h3>Reservas por semana</h3><span class="hint">Últimas 8 semanas</span></div><div class="panel-body"><div class="barchart" id="weekly-chart"><div class="bar-col"><div class="bar-val">42</div><div class="bar" style="height:58.333333333333336%"></div><div class="bar-label">S1</div></div><div class="bar-col"><div class="bar-val">38</div><div class="bar" style="height:52.77777777777778%"></div><div class="bar-label">S2</div></div><div class="bar-col"><div class="bar-val">55</div><div class="bar" style="height:76.38888888888889%"></div><div class="bar-label">S3</div></div><div class="bar-col"><div class="bar-val">49</div><div class="bar" style="height:68.05555555555556%"></div><div class="bar-label">S4</div></div><div class="bar-col"><div class="bar-val">61</div><div class="bar" style="height:84.72222222222221%"></div><div class="bar-label">S5</div></div><div class="bar-col"><div class="bar-val">58</div><div class="bar" style="height:80.55555555555556%"></div><div class="bar-label">S6</div></div><div class="bar-col"><div class="bar-val">66</div><div class="bar" style="height:91.66666666666666%"></div><div class="bar-label">S7</div></div><div class="bar-col"><div class="bar-val">72</div><div class="bar" style="height:100%"></div><div class="bar-label">S8</div></div></div></div></div>
+          <div class="panel"><div class="panel-head"><h3>Feed de alertas</h3><span class="hint">En tiempo real</span></div><div class="panel-body" id="alerts-feed"><div class="alert-item"><div class="alert-ic warn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg></div><div class="alert-txt"><div class="t1">2 proveedores esperan verificación de documentos</div><div class="t2">Páramo Adventures, Posada Los Frailejones</div></div><button class="alert-link" onclick="goTo('proveedores')">Ver</button></div><div class="alert-item"><div class="alert-ic danger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg></div><div class="alert-txt"><div class="t1">3 disputas sin resolver</div><div class="t2">La más antigua lleva 4 días abierta</div></div><button class="alert-link" onclick="goTo('disputas')">Ver</button></div><div class="alert-item"><div class="alert-ic info"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg></div><div class="alert-txt"><div class="t1">5 liquidaciones listas para pago</div><div class="t2">Corte quincenal el 18 de julio</div></div><button class="alert-link" onclick="goTo('pagos')">Ver</button></div><div class="alert-item"><div class="alert-ic warn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg></div><div class="alert-txt"><div class="t1">Aventura Extrema Táchira: pago próximo a vencer</div><div class="t2">Vence en 2 días — $1.240</div></div><button class="alert-link" onclick="goTo('pagos')">Ver</button></div></div></div>
+        </div>
+      </section>
+      <section class="page" id="page-proveedores">
+        <div class="toolbar">
+          <select class="select" id="filtro-prov-estado"><option value="">Todos los estados</option><option>Pendiente verificación</option><option>Activo</option><option>Suspendido</option></select>
+          <select class="select" id="filtro-prov-municipio"><option value="">Todos los municipios</option><option value="San Cristóbal">San Cristóbal</option><option value="Táriba">Táriba</option><option value="Rubio">Rubio</option><option value="San Antonio del Táchira">San Antonio del Táchira</option><option value="Ureña">Ureña</option><option value="Colón">Colón</option><option value="Capacho">Capacho</option><option value="La Grita">La Grita</option><option value="Pregonero">Pregonero</option><option value="Queniquea">Queniquea</option><option value="Michelena">Michelena</option><option value="Lobatera">Lobatera</option></select>
+          <div class="spacer"></div>
+          <input class="input search" id="buscar-prov" placeholder="Buscar proveedor…">
+        </div>
+        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Municipio</th><th>Categoría</th><th>Estado</th><th>Calificación</th><th>Registro</th><th>Acciones</th></tr></thead><tbody id="tbl-proveedores"><tr><td class="cell-strong">Posada El Cafetal<div class="cell-sub">5 listados activos</div></td><td>Queniquea</td><td>Posada</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★★</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.8</span></td><td>11 feb. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p1')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Aventura Extrema Táchira<div class="cell-sub">8 listados activos</div></td><td>Pregonero</td><td>Tour de Aventura</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★★</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.6</span></td><td>20 ene. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p2')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Posada Los Frailejones<div class="cell-sub">1 listados activos</div></td><td>Pregonero</td><td>Posada</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente verificación</span></td><td><span class="cell-sub">Sin calificar</span></td><td>28 jun. 2026</td><td><button class="link-btn" onclick="abrirProveedor('p3')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Tours Andinos GT<div class="cell-sub">12 listados activos</div></td><td>San Cristóbal</td><td>Tour Cultural</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★★</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.9</span></td><td>05 nov. 2023</td><td><button class="link-btn" onclick="abrirProveedor('p4')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Rutas del Táchira<div class="cell-sub">6 listados activos</div></td><td>San Cristóbal</td><td>Tour de Aventura</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★★</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.7</span></td><td>14 mar. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p5')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Posada Buena Vista<div class="cell-sub">2 listados activos</div></td><td>Táriba</td><td>Posada</td><td><span class="badge b-red"><span class="dot"></span>Suspendido</span></td><td><span class="stars">★★★☆☆</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">3.2</span></td><td>01 sept. 2023</td><td><button class="link-btn" onclick="abrirProveedor('p6')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Sabores de la Frontera<div class="cell-sub">4 listados activos</div></td><td>San Antonio del Táchira</td><td>Tour Gastronómico</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★★</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.5</span></td><td>19 may. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p7')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Páramo Adventures<div class="cell-sub">1 listados activos</div></td><td>Pregonero</td><td>Actividad Extrema</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente verificación</span></td><td><span class="cell-sub">Sin calificar</span></td><td>01 jul. 2026</td><td><button class="link-btn" onclick="abrirProveedor('p8')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Posada Colonial La Grita<div class="cell-sub">3 listados activos</div></td><td>La Grita</td><td>Posada</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★☆</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.4</span></td><td>02 abr. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p9')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Ecoturismo Capacho<div class="cell-sub">5 listados activos</div></td><td>Capacho</td><td>Tour Cultural</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★☆</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.3</span></td><td>10 jun. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p10')">Ver detalle →</button></td></tr></tbody></table></div></div>
+      </section>
+      <section class="page" id="page-pagos">
+        <div class="panel" style="margin-bottom:18px;"><div class="panel-head"><h3>Ciclo de liquidación actual</h3></div><div class="panel-body" style="display:flex; align-items:center; gap:24px; flex-wrap:wrap;"><div class="kv"><div class="k">Ciclo activo</div><div class="v">Quincenal</div></div><div class="kv"><div class="k">Próximo corte</div><div class="v">18 jul. 2026</div></div><div class="kv"><div class="k">Retención por defecto</div><div class="v">30% anticipo · 70% post-servicio</div></div><div class="spacer"></div><select class="select" id="ciclo-select"><option>Quincenal</option><option>Semanal</option><option>Mensual</option></select></div></div>
+        <div class="toolbar"><h3 style="margin:0; font-size:15px;">Liquidaciones pendientes</h3><div class="spacer"></div><button class="btn btn-orange" id="btn-pagar-todos">Pagar todos los pendientes</button></div>
+        <div class="panel" style="margin-bottom:22px;"><div class="table-wrap"><table><thead><tr><th>Proveedor</th><th>Monto acumulado</th><th># Reservas</th><th>Método de cobro</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="tbl-pagos-pendientes"><tr id="pago-row-0"><td class="cell-strong">Posada El Cafetal</td><td class="tabular cell-strong">$820</td><td class="tabular">6</td><td>Pago Móvil</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente</span></td><td><button class="btn sm btn-primary" onclick="aprobarPago(0)">Aprobar y pagar</button></td></tr><tr id="pago-row-1"><td class="cell-strong">Aventura Extrema Táchira</td><td class="tabular cell-strong">$1.240</td><td class="tabular">11</td><td>Zelle</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente</span></td><td><button class="btn sm btn-primary" onclick="aprobarPago(1)">Aprobar y pagar</button></td></tr><tr id="pago-row-2"><td class="cell-strong">Tours Andinos GT</td><td class="tabular cell-strong">$1.560</td><td class="tabular">14</td><td>Binance/USDT</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente</span></td><td><button class="btn sm btn-primary" onclick="aprobarPago(2)">Aprobar y pagar</button></td></tr><tr id="pago-row-3"><td class="cell-strong">Rutas del Táchira</td><td class="tabular cell-strong">$910</td><td class="tabular">8</td><td>Pago Móvil</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente</span></td><td><button class="btn sm btn-primary" onclick="aprobarPago(3)">Aprobar y pagar</button></td></tr><tr id="pago-row-4"><td class="cell-strong">Sabores de la Frontera</td><td class="tabular cell-strong">$560</td><td class="tabular">5</td><td>Zelle</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente</span></td><td><button class="btn sm btn-primary" onclick="aprobarPago(4)">Aprobar y pagar</button></td></tr><tr id="pago-row-5"><td class="cell-strong">Posada Colonial La Grita</td><td class="tabular cell-strong">$410</td><td class="tabular">3</td><td>Pago Móvil</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente</span></td><td><button class="btn sm btn-primary" onclick="aprobarPago(5)">Aprobar y pagar</button></td></tr><tr id="pago-row-6"><td class="cell-strong">Ecoturismo Capacho</td><td class="tabular cell-strong">$380</td><td class="tabular">4</td><td>Nequi (COP)</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente</span></td><td><button class="btn sm btn-primary" onclick="aprobarPago(6)">Aprobar y pagar</button></td></tr></tbody></table></div></div>
+        <div class="panel"><div class="panel-head"><h3>Historial de pagos liberados</h3></div><div class="table-wrap"><table><thead><tr><th>Proveedor</th><th>Monto</th><th>Método</th><th>Fecha de liberación</th><th>Referencia</th></tr></thead><tbody id="tbl-pagos-historial"><tr><td class="cell-strong">Tours Andinos GT</td><td class="tabular">$1.410</td><td>Binance/USDT</td><td>30 may. 2026</td><td class="cell-sub tabular">TXN-88231</td></tr><tr><td class="cell-strong">Aventura Extrema Táchira</td><td class="tabular">$980</td><td>Zelle</td><td>30 may. 2026</td><td class="cell-sub tabular">TXN-88214</td></tr><tr><td class="cell-strong">Posada El Cafetal</td><td class="tabular">$640</td><td>Pago Móvil</td><td>30 may. 2026</td><td class="cell-sub tabular">TXN-88198</td></tr><tr><td class="cell-strong">Rutas del Táchira</td><td class="tabular">$720</td><td>Pago Móvil</td><td>15 may. 2026</td><td class="cell-sub tabular">TXN-87960</td></tr><tr><td class="cell-strong">Posada Buena Vista</td><td class="tabular">$340</td><td>Nequi (COP)</td><td>15 abr. 2026</td><td class="cell-sub tabular">TXN-87422</td></tr></tbody></table></div></div>
+      </section>
+      <section class="page" id="page-disputas">
+        <div class="toolbar"><select class="select" id="filtro-disp-estado"><option value="">Todos los estados</option><option>Abierta</option><option>Resuelta</option></select></div>
+        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Proveedor</th><th>Tipo</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead><tbody id="tbl-disputas"><tr><td class="cell-strong">Andrea Contreras</td><td>Posada Buena Vista</td><td>No-show</td><td><span class="badge b-orange"><span class="dot"></span>Abierta</span></td><td>02 jul. 2026</td><td><button class="link-btn" onclick="abrirDisputa('d1')">Ver caso →</button></td></tr><tr><td class="cell-strong">Luis Ramírez</td><td>Aventura Extrema Táchira</td><td>Reclamo de calidad</td><td><span class="badge b-orange"><span class="dot"></span>Abierta</span></td><td>01 jul. 2026</td><td><button class="link-btn" onclick="abrirDisputa('d2')">Ver caso →</button></td></tr><tr><td class="cell-strong">Marianny Useche</td><td>Tours Andinos GT</td><td>Otro</td><td><span class="badge b-orange"><span class="dot"></span>Abierta</span></td><td>29 jun. 2026</td><td><button class="link-btn" onclick="abrirDisputa('d3')">Ver caso →</button></td></tr><tr><td class="cell-strong">Carlos Peña</td><td>Posada El Cafetal</td><td>Reclamo de calidad</td><td><span class="badge b-green"><span class="dot"></span>Resuelta</span></td><td>20 jun. 2026</td><td><button class="link-btn" onclick="abrirDisputa('d4')">Ver caso →</button></td></tr><tr><td class="cell-strong">Génesis Molina</td><td>Sabores de la Frontera</td><td>No-show</td><td><span class="badge b-green"><span class="dot"></span>Resuelta</span></td><td>14 jun. 2026</td><td><button class="link-btn" onclick="abrirDisputa('d5')">Ver caso →</button></td></tr></tbody></table></div></div>
+      </section>
+      <section class="page" id="page-clientes">
+        <div class="toolbar"><input class="input search" id="buscar-cliente" placeholder="Buscar cliente por nombre o email…"></div>
+        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Email</th><th>Reservas totales</th><th>Gasto total</th><th>Cuotas pendientes</th><th>Acción</th></tr></thead><tbody id="tbl-clientes"><tr><td class="cell-strong">Andrea Contreras</td><td class="cell-sub">andrea.contreras@gmail.com</td><td class="tabular">4</td><td class="tabular cell-strong">$312</td><td><span class="badge b-orange"><span class="dot"></span>1 pendiente</span></td><td><button class="link-btn" onclick="abrirCliente('andrea.contreras@gmail.com')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Luis Ramírez</td><td class="cell-sub">luis.ramirez88@hotmail.com</td><td class="tabular">7</td><td class="tabular cell-strong">$598</td><td><span class="cell-sub">—</span></td><td><button class="link-btn" onclick="abrirCliente('luis.ramirez88@hotmail.com')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Marianny Useche</td><td class="cell-sub">marianny.u@gmail.com</td><td class="tabular">2</td><td class="tabular cell-strong">$145</td><td><span class="cell-sub">—</span></td><td><button class="link-btn" onclick="abrirCliente('marianny.u@gmail.com')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Carlos Peña</td><td class="cell-sub">carlospena.tach@gmail.com</td><td class="tabular">9</td><td class="tabular cell-strong">$781</td><td><span class="cell-sub">—</span></td><td><button class="link-btn" onclick="abrirCliente('carlospena.tach@gmail.com')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Génesis Molina</td><td class="cell-sub">genesis.molina@outlook.com</td><td class="tabular">3</td><td class="tabular cell-strong">$220</td><td><span class="cell-sub">—</span></td><td><button class="link-btn" onclick="abrirCliente('genesis.molina@outlook.com')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Jesús Zambrano</td><td class="cell-sub">jesuszambrano@gmail.com</td><td class="tabular">5</td><td class="tabular cell-strong">$410</td><td><span class="cell-sub">—</span></td><td><button class="link-btn" onclick="abrirCliente('jesuszambrano@gmail.com')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Valentina Rojas</td><td class="cell-sub">valen.rojas@gmail.com</td><td class="tabular">1</td><td class="tabular cell-strong">$60</td><td><span class="badge b-orange"><span class="dot"></span>1 pendiente</span></td><td><button class="link-btn" onclick="abrirCliente('valen.rojas@gmail.com')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Franklin Duque</td><td class="cell-sub">fduque.andes@gmail.com</td><td class="tabular">6</td><td class="tabular cell-strong">$495</td><td><span class="cell-sub">—</span></td><td><button class="link-btn" onclick="abrirCliente('fduque.andes@gmail.com')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Yosmar Contreras</td><td class="cell-sub">yosmar.c@gmail.com</td><td class="tabular">2</td><td class="tabular cell-strong">$158</td><td><span class="cell-sub">—</span></td><td><button class="link-btn" onclick="abrirCliente('yosmar.c@gmail.com')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Diego Sánchez</td><td class="cell-sub">diego.sanchez.29@gmail.com</td><td class="tabular">8</td><td class="tabular cell-strong">$702</td><td><span class="cell-sub">—</span></td><td><button class="link-btn" onclick="abrirCliente('diego.sanchez.29@gmail.com')">Ver detalle →</button></td></tr></tbody></table></div></div>
+      </section>
+      <section class="page" id="page-reservas">
+        <div class="panel" style="margin-bottom:22px;">
+          <div class="panel-head"><h3>Reservas reales (Supabase)</h3><span class="hint">Sincronizado en vivo desde el Portal Cliente</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Proveedor</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="real-reservas-body"><tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Cargando...</td></tr></tbody></table></div>
+        </div>
+        <div class="toolbar">
+          <select class="select" id="filtro-res-estado"><option value="">Todos los estados</option><option>Confirmada</option><option>Pendiente confirmación</option><option>Completada</option><option>Cancelada</option></select>
+          <select class="select" id="filtro-res-municipio"><option value="">Todos los municipios</option><option value="San Cristóbal">San Cristóbal</option><option value="Táriba">Táriba</option><option value="Rubio">Rubio</option><option value="San Antonio del Táchira">San Antonio del Táchira</option><option value="Ureña">Ureña</option><option value="Colón">Colón</option><option value="Capacho">Capacho</option><option value="La Grita">La Grita</option><option value="Pregonero">Pregonero</option><option value="Queniquea">Queniquea</option><option value="Michelena">Michelena</option><option value="Lobatera">Lobatera</option></select>
+          <input class="input" type="date" id="filtro-res-desde">
+          <input class="input" type="date" id="filtro-res-hasta">
+        </div>
+        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Proveedor</th><th>Tour / Posada</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="tbl-reservas"><tr><td class="cell-strong">Andrea Contreras</td><td>Posada Buena Vista</td><td>Posada Buena Vista — 2 noches</td><td>02 jul. 2026</td><td class="tabular cell-strong">$96</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente confirmación</span></td></tr><tr><td class="cell-strong">Luis Ramírez</td><td>Aventura Extrema Táchira</td><td>Ascenso Páramo de Tamá</td><td>01 jul. 2026</td><td class="tabular cell-strong">$130</td><td><span class="badge b-blue"><span class="dot"></span>Confirmada</span></td></tr><tr><td class="cell-strong">Marianny Useche</td><td>Tours Andinos GT</td><td>Recorrido Centro Histórico SC</td><td>30 jun. 2026</td><td class="tabular cell-strong">$45</td><td><span class="badge b-green"><span class="dot"></span>Completada</span></td></tr><tr><td class="cell-strong">Carlos Peña</td><td>Posada El Cafetal</td><td>Posada El Cafetal — 3 noches</td><td>29 jun. 2026</td><td class="tabular cell-strong">$180</td><td><span class="badge b-green"><span class="dot"></span>Completada</span></td></tr><tr><td class="cell-strong">Génesis Molina</td><td>Sabores de la Frontera</td><td>Ruta gastronómica fronteriza</td><td>28 jun. 2026</td><td class="tabular cell-strong">$35</td><td><span class="badge b-green"><span class="dot"></span>Completada</span></td></tr><tr><td class="cell-strong">Jesús Zambrano</td><td>Rutas del Táchira</td><td>Cascada La Machirí</td><td>27 jun. 2026</td><td class="tabular cell-strong">$60</td><td><span class="badge b-blue"><span class="dot"></span>Confirmada</span></td></tr><tr><td class="cell-strong">Valentina Rojas</td><td>Ecoturismo Capacho</td><td>Caminata ecológica Capacho</td><td>26 jun. 2026</td><td class="tabular cell-strong">$38</td><td><span class="badge b-red"><span class="dot"></span>Cancelada</span></td></tr><tr><td class="cell-strong">Franklin Duque</td><td>Posada Colonial La Grita</td><td>Posada Colonial — 1 noche</td><td>25 jun. 2026</td><td class="tabular cell-strong">$52</td><td><span class="badge b-green"><span class="dot"></span>Completada</span></td></tr><tr><td class="cell-strong">Yosmar Contreras</td><td>Tours Andinos GT</td><td>Tour nocturno San Cristóbal</td><td>24 jun. 2026</td><td class="tabular cell-strong">$40</td><td><span class="badge b-green"><span class="dot"></span>Completada</span></td></tr><tr><td class="cell-strong">Diego Sánchez</td><td>Aventura Extrema Táchira</td><td>Rafting Río Táchira</td><td>23 jun. 2026</td><td class="tabular cell-strong">$95</td><td><span class="badge b-blue"><span class="dot"></span>Confirmada</span></td></tr><tr><td class="cell-strong">Andrea Contreras</td><td>Sabores de la Frontera</td><td>Cata de café andino</td><td>20 jun. 2026</td><td class="tabular cell-strong">$28</td><td><span class="badge b-green"><span class="dot"></span>Completada</span></td></tr><tr><td class="cell-strong">Luis Ramírez</td><td>Posada El Cafetal</td><td>Posada El Cafetal — 2 noches</td><td>18 jun. 2026</td><td class="tabular cell-strong">$120</td><td><span class="badge b-green"><span class="dot"></span>Completada</span></td></tr><tr><td class="cell-strong">Marianny Useche</td><td>Rutas del Táchira</td><td>Trekking Páramo El Rosal</td><td>15 jun. 2026</td><td class="tabular cell-strong">$70</td><td><span class="badge b-green"><span class="dot"></span>Completada</span></td></tr><tr><td class="cell-strong">Carlos Peña</td><td>Posada Buena Vista</td><td>Posada Buena Vista — 1 noche</td><td>10 jun. 2026</td><td class="tabular cell-strong">$48</td><td><span class="badge b-red"><span class="dot"></span>Cancelada</span></td></tr><tr><td class="cell-strong">Génesis Molina</td><td>Ecoturismo Capacho</td><td>Ruta del café Capacho</td><td>08 jun. 2026</td><td class="tabular cell-strong">$32</td><td><span class="badge b-green"><span class="dot"></span>Completada</span></td></tr></tbody></table></div></div>
+      </section>
+      <section class="page" id="page-config">
+        <div class="tabs"><button class="tab-btn active" data-tab="cfg-general">General</button><button class="tab-btn" data-tab="cfg-legal">Textos legales</button><button class="tab-btn" data-tab="cfg-categorias">Categorías y municipios</button></div>
+        <div class="tabpage active" id="cfg-general"><div class="panel"><div class="panel-body">
+          <div class="form-row"><label>Comisión de la plataforma (%)</label><input class="input" style="width:140px" type="number" value="12" min="0" max="100"><div class="desc">Porcentaje que Táchira GOO!!! retiene sobre cada reserva confirmada.</div></div>
+          <div class="form-row"><label>Política de cancelación por defecto</label><select class="select" style="width:100%"><option>Flexible — reembolso completo hasta 48h antes</option><option selected="">Moderada — reembolso 50% hasta 72h antes</option><option>Estricta — sin reembolso a menos de 7 días</option></select><div class="desc">Se aplica a proveedores que no definan una política propia.</div></div>
+          <button class="btn btn-primary" onclick="showToast('Configuración general guardada','success')">Guardar cambios</button>
+        </div></div></div>
+        <div class="tabpage" id="cfg-legal">
+          <div class="tabs" style="border-bottom:none; margin-bottom:12px;"><button class="tab-btn active" data-legaltab="terminos">Términos y condiciones</button><button class="tab-btn" data-legaltab="privacidad">Política de privacidad</button><button class="tab-btn" data-legaltab="cancelacion">Política de cancelación</button></div>
+          <div class="panel"><div class="panel-body"><textarea class="textarea" id="legal-editor" style="min-height:260px;"></textarea><div style="margin-top:12px;"><button class="btn btn-primary" onclick="showToast('Texto legal publicado','success')">Publicar cambios</button></div></div></div>
+        </div>
+        <div class="tabpage" id="cfg-categorias">
+          <div class="grid-2"><div class="panel"><div class="panel-head"><h3>Categorías habilitadas</h3></div><div class="panel-body toggle-list" id="toggle-categorias"><div class="toggle-row"><div class="tname">Tour de Aventura</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('Tour de Aventura '+(this.checked?'habilitada':'deshabilitada'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Posada</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('Posada '+(this.checked?'habilitada':'deshabilitada'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Tour Gastronómico</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('Tour Gastronómico '+(this.checked?'habilitada':'deshabilitada'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Tour Cultural</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('Tour Cultural '+(this.checked?'habilitada':'deshabilitada'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Actividad Extrema</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('Actividad Extrema '+(this.checked?'habilitada':'deshabilitada'))"><span class="slider"></span></label></div></div></div><div class="panel"><div class="panel-head"><h3>Municipios habilitados</h3></div><div class="panel-body toggle-list" id="toggle-municipios"><div class="toggle-row"><div class="tname">San Cristóbal</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('San Cristóbal '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Táriba</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('Táriba '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Rubio</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('Rubio '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">San Antonio del Táchira</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('San Antonio del Táchira '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Ureña</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('Ureña '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Colón</div><label class="switch"><input type="checkbox" checked="" onchange="showToast('Colón '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Capacho</div><label class="switch"><input type="checkbox" onchange="showToast('Capacho '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">La Grita</div><label class="switch"><input type="checkbox" onchange="showToast('La Grita '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Pregonero</div><label class="switch"><input type="checkbox" onchange="showToast('Pregonero '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Queniquea</div><label class="switch"><input type="checkbox" onchange="showToast('Queniquea '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Michelena</div><label class="switch"><input type="checkbox" onchange="showToast('Michelena '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div><div class="toggle-row"><div class="tname">Lobatera</div><label class="switch"><input type="checkbox" onchange="showToast('Lobatera '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div></div></div></div>
+        </div>
+      </section>
+      <section class="page" id="page-reportes">
+        <div class="grid-2" style="margin-bottom:16px;"><div class="panel"><div class="panel-head"><h3>Tours / posadas más vendidos</h3><span class="hint">Este mes</span></div><div class="panel-body" id="ranking-top"><div class="hbar-row"><div class="name">Ascenso Páramo de Tamá</div><div class="hbar-track"><div class="hbar-fill" style="width:100%"></div></div><div class="hbar-num tabular">82 res.</div></div><div class="hbar-row"><div class="name">Recorrido Centro Histórico SC</div><div class="hbar-track"><div class="hbar-fill" style="width:90.2439024390244%"></div></div><div class="hbar-num tabular">74 res.</div></div><div class="hbar-row"><div class="name">Posada El Cafetal</div><div class="hbar-track"><div class="hbar-fill" style="width:80.48780487804879%"></div></div><div class="hbar-num tabular">66 res.</div></div><div class="hbar-row"><div class="name">Cascada La Machirí</div><div class="hbar-track"><div class="hbar-fill" style="width:70.73170731707317%"></div></div><div class="hbar-num tabular">58 res.</div></div><div class="hbar-row"><div class="name">Ruta gastronómica fronteriza</div><div class="hbar-track"><div class="hbar-fill" style="width:50%"></div></div><div class="hbar-num tabular">41 res.</div></div></div></div><div class="panel"><div class="panel-head"><h3>Demanda por municipio</h3><span class="hint">Para secuencia de lanzamiento</span></div><div class="panel-body" id="demanda-municipio"><div class="hbar-row"><div class="name">San Cristóbal</div><div class="hbar-track"><div class="hbar-fill orange" style="width:100%"></div></div><div class="hbar-num tabular">96 pts.</div></div><div class="hbar-row"><div class="name">Pregonero</div><div class="hbar-track"><div class="hbar-fill orange" style="width:91.66666666666666%"></div></div><div class="hbar-num tabular">88 pts.</div></div><div class="hbar-row"><div class="name">Queniquea</div><div class="hbar-track"><div class="hbar-fill orange" style="width:63.541666666666664%"></div></div><div class="hbar-num tabular">61 pts.</div></div><div class="hbar-row"><div class="name">San Antonio del Táchira</div><div class="hbar-track"><div class="hbar-fill orange" style="width:48.95833333333333%"></div></div><div class="hbar-num tabular">47 pts.</div></div><div class="hbar-row"><div class="name">La Grita</div><div class="hbar-track"><div class="hbar-fill orange" style="width:34.375%"></div></div><div class="hbar-num tabular">33 pts.</div></div><div class="hbar-row"><div class="name">Capacho</div><div class="hbar-track"><div class="hbar-fill orange" style="width:30.208333333333332%"></div></div><div class="hbar-num tabular">29 pts.</div></div><div class="hbar-row"><div class="name">Táriba</div><div class="hbar-track"><div class="hbar-fill orange" style="width:18.75%"></div></div><div class="hbar-num tabular">18 pts.</div></div></div></div></div>
+        <div class="panel"><div class="panel-head"><h3>Tendencia de GMV en el tiempo</h3><span class="hint">Últimos 6 meses</span></div><div class="panel-body"><div class="barchart" id="gmv-chart" style="height:180px;"><div class="bar-col"><div class="bar-val">$28.4k</div><div class="bar" style="height:58.774834437086085%"></div><div class="bar-label">Feb</div></div><div class="bar-col"><div class="bar-val">$31.2k</div><div class="bar" style="height:64.56953642384106%"></div><div class="bar-label">Mar</div></div><div class="bar-col"><div class="bar-val">$35.9k</div><div class="bar" style="height:74.29635761589404%"></div><div class="bar-label">Abr</div></div><div class="bar-col"><div class="bar-val">$40.1k</div><div class="bar" style="height:82.98841059602648%"></div><div class="bar-label">May</div></div><div class="bar-col"><div class="bar-val">$44.7k</div><div class="bar" style="height:92.50827814569537%"></div><div class="bar-label">Jun</div></div><div class="bar-col"><div class="bar-val">$48.3k</div><div class="bar" style="height:100%"></div><div class="bar-label">Jul</div></div></div></div></div>
+      </section>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay"><div class="drawer" id="drawer"></div></div>
+<div id="toast-wrap"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://vkgxvckooykxfulclodj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_LVIRh3oSFP7gGSkQuCnBdg_eZ2SAB8g';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const MUNICIPIOS = ['San Cristóbal','Táriba','Rubio','San Antonio del Táchira','Ureña','Colón','Capacho','La Grita','Pregonero','Queniquea','Michelena','Lobatera'];
+const CATEGORIAS = ['Tour de Aventura','Posada','Tour Gastronómico','Tour Cultural','Actividad Extrema'];
+let PROVEEDORES = [
+  {id:'p1', nombre:'Posada El Cafetal', municipio:'Queniquea', categoria:'Posada', estado:'Activo', rating:4.8, registro:'2024-02-11', listados:5, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Registro Mercantil', e:'Aprobado'},{n:'Permiso municipal de turismo', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:820, metodo:'Pago Móvil'},{m:'2026-05-30', monto:640, metodo:'Pago Móvil'}]},
+  {id:'p2', nombre:'Aventura Extrema Táchira', municipio:'Pregonero', categoria:'Tour de Aventura', estado:'Activo', rating:4.6, registro:'2024-01-20', listados:8, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Seguro de responsabilidad civil', e:'Aprobado'},{n:'Certificación de guías', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:1240, metodo:'Zelle'},{m:'2026-05-30', monto:980, metodo:'Zelle'}]},
+  {id:'p3', nombre:'Posada Los Frailejones', municipio:'Pregonero', categoria:'Posada', estado:'Pendiente verificación', rating:0, registro:'2026-06-28', listados:1, docs:[{n:'Cédula/RIF representante', e:'En revisión'},{n:'Registro Mercantil', e:'En revisión'},{n:'Fotos del inmueble', e:'Aprobado'}], pagos:[]},
+  {id:'p4', nombre:'Tours Andinos GT', municipio:'San Cristóbal', categoria:'Tour Cultural', estado:'Activo', rating:4.9, registro:'2023-11-05', listados:12, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Permiso municipal de turismo', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:1560, metodo:'Binance/USDT'},{m:'2026-05-30', monto:1410, metodo:'Binance/USDT'}]},
+  {id:'p5', nombre:'Rutas del Táchira', municipio:'San Cristóbal', categoria:'Tour de Aventura', estado:'Activo', rating:4.7, registro:'2024-03-14', listados:6, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Seguro de responsabilidad civil', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:910, metodo:'Pago Móvil'}]},
+  {id:'p6', nombre:'Posada Buena Vista', municipio:'Táriba', categoria:'Posada', estado:'Suspendido', rating:3.2, registro:'2023-09-01', listados:2, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Registro Mercantil', e:'Aprobado'}], pagos:[{m:'2026-04-15', monto:340, metodo:'Nequi (COP)'}], motivoSuspension:'Múltiples quejas de clientes por no-show reiterado.'},
+  {id:'p7', nombre:'Sabores de la Frontera', municipio:'San Antonio del Táchira', categoria:'Tour Gastronómico', estado:'Activo', rating:4.5, registro:'2024-05-19', listados:4, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Permiso sanitario', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:560, metodo:'Zelle'}]},
+  {id:'p8', nombre:'Páramo Adventures', municipio:'Pregonero', categoria:'Actividad Extrema', estado:'Pendiente verificación', rating:0, registro:'2026-07-01', listados:1, docs:[{n:'Cédula/RIF representante', e:'En revisión'},{n:'Seguro de responsabilidad civil', e:'En revisión'},{n:'Certificación de guías', e:'Rechazado'}], pagos:[]},
+  {id:'p9', nombre:'Posada Colonial La Grita', municipio:'La Grita', categoria:'Posada', estado:'Activo', rating:4.4, registro:'2024-04-02', listados:3, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Registro Mercantil', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:410, metodo:'Pago Móvil'}]},
+  {id:'p10', nombre:'Ecoturismo Capacho', municipio:'Capacho', categoria:'Tour Cultural', estado:'Activo', rating:4.3, registro:'2024-06-10', listados:5, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Permiso municipal de turismo', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:380, metodo:'Nequi (COP)'}]},
+];
+let PAGOS_PENDIENTES = [
+  {prov:'Posada El Cafetal', monto:820, reservas:6, metodo:'Pago Móvil', estado:'Pendiente'},
+  {prov:'Aventura Extrema Táchira', monto:1240, reservas:11, metodo:'Zelle', estado:'Pendiente'},
+  {prov:'Tours Andinos GT', monto:1560, reservas:14, metodo:'Binance/USDT', estado:'Pendiente'},
+  {prov:'Rutas del Táchira', monto:910, reservas:8, metodo:'Pago Móvil', estado:'Pendiente'},
+  {prov:'Sabores de la Frontera', monto:560, reservas:5, metodo:'Zelle', estado:'Pendiente'},
+  {prov:'Posada Colonial La Grita', monto:410, reservas:3, metodo:'Pago Móvil', estado:'Pendiente'},
+  {prov:'Ecoturismo Capacho', monto:380, reservas:4, metodo:'Nequi (COP)', estado:'Pendiente'},
+];
+const PAGOS_HISTORIAL = [
+  {prov:'Tours Andinos GT', monto:1410, metodo:'Binance/USDT', fecha:'2026-05-30', ref:'TXN-88231'},
+  {prov:'Aventura Extrema Táchira', monto:980, metodo:'Zelle', fecha:'2026-05-30', ref:'TXN-88214'},
+  {prov:'Posada El Cafetal', monto:640, metodo:'Pago Móvil', fecha:'2026-05-30', ref:'TXN-88198'},
+  {prov:'Rutas del Táchira', monto:720, metodo:'Pago Móvil', fecha:'2026-05-15', ref:'TXN-87960'},
+  {prov:'Posada Buena Vista', monto:340, metodo:'Nequi (COP)', fecha:'2026-04-15', ref:'TXN-87422'},
+];
+let DISPUTAS = [
+  {id:'d1', cliente:'Andrea Contreras', proveedor:'Posada Buena Vista', tipo:'No-show', estado:'Abierta', fecha:'2026-07-02'},
+  {id:'d2', cliente:'Luis Ramírez', proveedor:'Aventura Extrema Táchira', tipo:'Reclamo de calidad', estado:'Abierta', fecha:'2026-07-01'},
+  {id:'d3', cliente:'Marianny Useche', proveedor:'Tours Andinos GT', tipo:'Otro', estado:'Abierta', fecha:'2026-06-29'},
+  {id:'d4', cliente:'Carlos Peña', proveedor:'Posada El Cafetal', tipo:'Reclamo de calidad', estado:'Resuelta', fecha:'2026-06-20', resolucion:'Reembolso al cliente'},
+  {id:'d5', cliente:'Génesis Molina', proveedor:'Sabores de la Frontera', tipo:'No-show', estado:'Resuelta', fecha:'2026-06-14', resolucion:'Liberar pago al proveedor'},
+];
+const CLIENTES = [
+  {nombre:'Andrea Contreras', email:'andrea.contreras@gmail.com', reservas:4, gasto:312, cuotas:'1 pendiente'},
+  {nombre:'Luis Ramírez', email:'luis.ramirez88@hotmail.com', reservas:7, gasto:598, cuotas:'—'},
+  {nombre:'Marianny Useche', email:'marianny.u@gmail.com', reservas:2, gasto:145, cuotas:'—'},
+  {nombre:'Carlos Peña', email:'carlospena.tach@gmail.com', reservas:9, gasto:781, cuotas:'—'},
+  {nombre:'Génesis Molina', email:'genesis.molina@outlook.com', reservas:3, gasto:220, cuotas:'—'},
+  {nombre:'Jesús Zambrano', email:'jesuszambrano@gmail.com', reservas:5, gasto:410, cuotas:'—'},
+  {nombre:'Valentina Rojas', email:'valen.rojas@gmail.com', reservas:1, gasto:60, cuotas:'1 pendiente'},
+  {nombre:'Franklin Duque', email:'fduque.andes@gmail.com', reservas:6, gasto:495, cuotas:'—'},
+  {nombre:'Yosmar Contreras', email:'yosmar.c@gmail.com', reservas:2, gasto:158, cuotas:'—'},
+  {nombre:'Diego Sánchez', email:'diego.sanchez.29@gmail.com', reservas:8, gasto:702, cuotas:'—'},
+];
+const RESERVAS = [
+  {cliente:'Andrea Contreras', proveedor:'Posada Buena Vista', item:'Posada Buena Vista — 2 noches', municipio:'Táriba', fecha:'2026-07-02', monto:96, estado:'Pendiente confirmación'},
+  {cliente:'Luis Ramírez', proveedor:'Aventura Extrema Táchira', item:'Ascenso Páramo de Tamá', municipio:'Pregonero', fecha:'2026-07-01', monto:130, estado:'Confirmada'},
+  {cliente:'Marianny Useche', proveedor:'Tours Andinos GT', item:'Recorrido Centro Histórico SC', municipio:'San Cristóbal', fecha:'2026-06-30', monto:45, estado:'Completada'},
+  {cliente:'Carlos Peña', proveedor:'Posada El Cafetal', item:'Posada El Cafetal — 3 noches', municipio:'Queniquea', fecha:'2026-06-29', monto:180, estado:'Completada'},
+  {cliente:'Génesis Molina', proveedor:'Sabores de la Frontera', item:'Ruta gastronómica fronteriza', municipio:'San Antonio del Táchira', fecha:'2026-06-28', monto:35, estado:'Completada'},
+  {cliente:'Jesús Zambrano', proveedor:'Rutas del Táchira', item:'Cascada La Machirí', municipio:'San Cristóbal', fecha:'2026-06-27', monto:60, estado:'Confirmada'},
+  {cliente:'Valentina Rojas', proveedor:'Ecoturismo Capacho', item:'Caminata ecológica Capacho', municipio:'Capacho', fecha:'2026-06-26', monto:38, estado:'Cancelada'},
+  {cliente:'Franklin Duque', proveedor:'Posada Colonial La Grita', item:'Posada Colonial — 1 noche', municipio:'La Grita', fecha:'2026-06-25', monto:52, estado:'Completada'},
+  {cliente:'Yosmar Contreras', proveedor:'Tours Andinos GT', item:'Tour nocturno San Cristóbal', municipio:'San Cristóbal', fecha:'2026-06-24', monto:40, estado:'Completada'},
+  {cliente:'Diego Sánchez', proveedor:'Aventura Extrema Táchira', item:'Rafting Río Táchira', municipio:'Pregonero', fecha:'2026-06-23', monto:95, estado:'Confirmada'},
+  {cliente:'Andrea Contreras', proveedor:'Sabores de la Frontera', item:'Cata de café andino', municipio:'San Antonio del Táchira', fecha:'2026-06-20', monto:28, estado:'Completada'},
+  {cliente:'Luis Ramírez', proveedor:'Posada El Cafetal', item:'Posada El Cafetal — 2 noches', municipio:'Queniquea', fecha:'2026-06-18', monto:120, estado:'Completada'},
+  {cliente:'Marianny Useche', proveedor:'Rutas del Táchira', item:'Trekking Páramo El Rosal', municipio:'San Cristóbal', fecha:'2026-06-15', monto:70, estado:'Completada'},
+  {cliente:'Carlos Peña', proveedor:'Posada Buena Vista', item:'Posada Buena Vista — 1 noche', municipio:'Táriba', fecha:'2026-06-10', monto:48, estado:'Cancelada'},
+  {cliente:'Génesis Molina', proveedor:'Ecoturismo Capacho', item:'Ruta del café Capacho', municipio:'Capacho', fecha:'2026-06-08', monto:32, estado:'Completada'},
+];
+const RANKING_TOP = [
+  {n:'Ascenso Páramo de Tamá', prov:'Aventura Extrema Táchira', v:82},
+  {n:'Recorrido Centro Histórico SC', prov:'Tours Andinos GT', v:74},
+  {n:'Posada El Cafetal', prov:'Posada El Cafetal', v:66},
+  {n:'Cascada La Machirí', prov:'Rutas del Táchira', v:58},
+  {n:'Ruta gastronómica fronteriza', prov:'Sabores de la Frontera', v:41},
+];
+const DEMANDA_MUNICIPIO = [
+  {m:'San Cristóbal', v:96},{m:'Pregonero', v:88},{m:'Queniquea', v:61},{m:'San Antonio del Táchira', v:47},{m:'La Grita', v:33},{m:'Capacho', v:29},{m:'Táriba', v:18},
+];
+const LEGAL_TEXTOS = {
+  terminos: `TÉRMINOS Y CONDICIONES — TÁCHIRA GOO!!!
+
+1. Objeto\nTáchira GOO!!! actúa como intermediario tecnológico entre clientes y proveedores de servicios turísticos (tours, posadas y actividades) en el estado Táchira.\n\n2. Reservas y pagos\nToda reserva confirmada implica el pago de un anticipo mínimo del 30% del monto total, retenido en garantía hasta la confirmación del servicio por parte del proveedor.\n\n3. Responsabilidad\nLa plataforma no presta directamente los servicios turísticos; la ejecución de los mismos es responsabilidad exclusiva del proveedor verificado.`,
+  privacidad: `POLÍTICA DE PRIVACIDAD — TÁCHIRA GOO!!!
+
+Recopilamos únicamente los datos necesarios para procesar reservas, pagos y verificación de proveedores. No compartimos información personal con terceros salvo cuando sea necesario para completar una transacción o por requerimiento legal.`,
+  cancelacion: `POLÍTICA DE CANCELACIÓN POR DEFECTO
+
+Moderada: el cliente recibe un reembolso del 50% del monto pagado si cancela con al menos 72 horas de anticipación al inicio del servicio. Cancelaciones con menos de 72 horas no son reembolsables, salvo causas de fuerza mayor evaluadas caso por caso.`
+};
+function money(n){ return '$' + n.toLocaleString('es-VE',{maximumFractionDigits:0}); }
+function fecha(f){ const d=new Date(f+'T00:00:00'); return d.toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'numeric'}); }
+function stars(r){ if(!r) return '<span class="cell-sub">Sin calificar</span>'; const full=Math.round(r); return '<span class="stars">'+'★'.repeat(full)+'☆'.repeat(5-full)+'</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">'+r.toFixed(1)+'</span>'; }
+function badgeEstadoProveedor(e){ if(e==='Activo') return '<span class="badge b-green"><span class="dot"></span>Activo</span>'; if(e==='Pendiente verificación') return '<span class="badge b-orange"><span class="dot"></span>Pendiente verificación</span>'; return '<span class="badge b-red"><span class="dot"></span>Suspendido</span>'; }
+function badgeEstadoReserva(e){ const map={'Confirmada':'b-blue','Pendiente confirmación':'b-orange','Completada':'b-green','Cancelada':'b-red'}; return '<span class="badge '+map[e]+'"><span class="dot"></span>'+e+'</span>'; }
+function badgeEstadoDisputa(e){ return e==='Abierta' ? '<span class="badge b-orange"><span class="dot"></span>Abierta</span>' : '<span class="badge b-green"><span class="dot"></span>Resuelta</span>'; }
+function badgeDoc(e){ if(e==='Aprobado') return '<span class="badge b-green"><span class="dot"></span>Aprobado</span>'; if(e==='Rechazado') return '<span class="badge b-red"><span class="dot"></span>Rechazado</span>'; return '<span class="badge b-orange"><span class="dot"></span>En revisión</span>'; }
+function showToast(msg, type){ const wrap=document.getElementById('toast-wrap'); const t=document.createElement('div'); t.className='toast'+(type?' '+type:''); t.textContent=msg; wrap.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2600); }
+function updateNavCounts(){ document.getElementById('nav-count-proveedores').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('nav-count-pagos').textContent = PAGOS_PENDIENTES.length; document.getElementById('nav-count-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-verif').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('ticker-pagos').textContent = money(PAGOS_PENDIENTES.reduce((a,b)=>a+b.monto,0)); }
+const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
+document.querySelectorAll('.nav-item').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); const page = btn.dataset.page; document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-'+page).classList.add('active'); document.getElementById('page-title').textContent = PAGE_TITLES[page]; document.getElementById('sidebar').classList.remove('open'); }); });
+function renderWeeklyChart(){ const data=[42,38,55,49,61,58,66,72]; const max=Math.max(...data); document.getElementById('weekly-chart').innerHTML = data.map((v,i)=>`<div class="bar-col"><div class="bar-val">${v}</div><div class="bar" style="height:${(v/max*100)}%"></div><div class="bar-label">S${i+1}</div></div>`).join(''); }
+function renderAlerts(){ const alerts=[ {ic:'warn', t1:'2 proveedores esperan verificación de documentos', t2:'Páramo Adventures, Posada Los Frailejones', link:'proveedores'}, {ic:'danger', t1:'3 disputas sin resolver', t2:'La más antigua lleva 4 días abierta', link:'disputas'}, {ic:'info', t1:'5 liquidaciones listas para pago', t2:'Corte quincenal el 18 de julio', link:'pagos'}, {ic:'warn', t1:'Aventura Extrema Táchira: pago próximo a vencer', t2:'Vence en 2 días — $1.240', link:'pagos'}, ]; document.getElementById('alerts-feed').innerHTML = alerts.map(a=>`<div class="alert-item"><div class="alert-ic ${a.ic}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="alert-txt"><div class="t1">${a.t1}</div><div class="t2">${a.t2}</div></div><button class="alert-link" onclick="goTo('${a.link}')">Ver</button></div>`).join(''); }
+function goTo(page){ document.querySelector('.nav-item[data-page="'+page+'"]').click(); }
+function renderProveedores(){ const estado = document.getElementById('filtro-prov-estado').value; const municipio = document.getElementById('filtro-prov-municipio').value; const q = document.getElementById('buscar-prov').value.toLowerCase(); const rows = PROVEEDORES.filter(p => (!estado || p.estado===estado) && (!municipio || p.municipio===municipio) && (p.nombre.toLowerCase().includes(q)) ); document.getElementById('tbl-proveedores').innerHTML = rows.length ? rows.map(p=>`<tr><td class="cell-strong">${p.nombre}<div class="cell-sub">${p.listados} listados activos</div></td><td>${p.municipio}</td><td>${p.categoria}</td><td>${badgeEstadoProveedor(p.estado)}</td><td>${stars(p.rating)}</td><td>${fecha(p.registro)}</td><td><button class="link-btn" onclick="abrirProveedor('${p.id}')">Ver detalle →</button></td></tr>`).join('') : `<tr><td colspan="7" class="empty-note">No hay proveedores que coincidan con los filtros.</td></tr>`; }
+function abrirProveedor(id){ const p = PROVEEDORES.find(x=>x.id===id); const drawer = document.getElementById('drawer'); drawer.innerHTML = `<div class="drawer-head"><div><div class="eyebrow">Proveedor</div><h2>${p.nombre}</h2></div><button class="drawer-close" onclick="closeDrawer()">✕</button></div><div class="drawer-body"><div class="dsection"><div class="kv-grid"><div class="kv"><div class="k">Municipio</div><div class="v">${p.municipio}</div></div><div class="kv"><div class="k">Categoría</div><div class="v">${p.categoria}</div></div><div class="kv"><div class="k">Estado</div><div class="v">${badgeEstadoProveedor(p.estado)}</div></div><div class="kv"><div class="k">Calificación</div><div class="v">${stars(p.rating)}</div></div><div class="kv"><div class="k">Registrado</div><div class="v">${fecha(p.registro)}</div></div><div class="kv"><div class="k">Listados activos</div><div class="v">${p.listados}</div></div></div></div><div class="dsection"><h4>Documentos de verificación</h4>${p.docs.map((d,i)=>`<div class="doc-row" id="doc-${p.id}-${i}"><div class="dname"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>${d.n}</div><div style="display:flex; align-items:center; gap:8px;">${badgeDoc(d.e)}${d.e==='En revisión' ? `<button class="btn sm btn-success-outline" onclick="revisarDoc('${p.id}',${i},'Aprobado')">Aprobar</button><button class="btn sm btn-danger-outline" onclick="revisarDoc('${p.id}',${i},'Rechazado')">Rechazar</button>` : ``}</div></div>`).join('')}</div><div class="dsection"><h4>Historial de pagos</h4>${p.pagos.length ? p.pagos.map(pg=>`<div class="doc-row"><div class="dname">${fecha(pg.m)} · ${pg.metodo}</div><div class="cell-strong">${money(pg.monto)}</div></div>`).join('') : '<div class="empty-note">Sin pagos liberados aún.</div>'}</div><div class="dsection"><h4>Suspender proveedor</h4>${p.estado==='Suspendido' ? `<div class="doc-row" style="align-items:flex-start;"><div class="dname" style="white-space:normal;">Motivo: ${p.motivoSuspension||'No especificado'}</div></div><button class="btn btn-primary" onclick="reactivarProveedor('${p.id}')">Reactivar proveedor</button>` : `<textarea class="textarea" id="motivo-susp-${p.id}" placeholder="Motivo de la suspensión…"></textarea><div style="margin-top:10px;"><button class="btn btn-orange" onclick="suspenderProveedor('${p.id}')">Suspender proveedor</button></div>`}</div></div>`; document.getElementById('overlay').classList.add('open'); }
+function revisarDoc(pid,i,estado){ const p=PROVEEDORES.find(x=>x.id===pid); p.docs[i].e=estado; if(estado==='Aprobado' && p.docs.every(d=>d.e==='Aprobado') && p.estado==='Pendiente verificación'){ p.estado='Activo'; showToast(p.nombre+' fue verificado y activado','success'); } else { showToast('Documento marcado como '+estado, estado==='Rechazado'?'warn':'success'); } updateNavCounts(); abrirProveedor(pid); renderProveedores(); }
+function suspenderProveedor(pid){ const p=PROVEEDORES.find(x=>x.id===pid); const motivo=document.getElementById('motivo-susp-'+pid).value || 'Sin motivo especificado'; p.estado='Suspendido'; p.motivoSuspension=motivo; showToast(p.nombre+' fue suspendido','warn'); abrirProveedor(pid); renderProveedores(); }
+function reactivarProveedor(pid){ const p=PROVEEDORES.find(x=>x.id===pid); p.estado='Activo'; showToast(p.nombre+' fue reactivado','success'); abrirProveedor(pid); renderProveedores(); }
+function closeDrawer(){ document.getElementById('overlay').classList.remove('open'); }
+document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeDrawer(); });
+function renderPagos(){ document.getElementById('tbl-pagos-pendientes').innerHTML = PAGOS_PENDIENTES.length ? PAGOS_PENDIENTES.map((p,i)=>`<tr id="pago-row-${i}"><td class="cell-strong">${p.prov}</td><td class="tabular cell-strong">${money(p.monto)}</td><td class="tabular">${p.reservas}</td><td>${p.metodo}</td><td>${p.estado==='Pendiente' ? '<span class="badge b-orange"><span class="dot"></span>Pendiente</span>' : '<span class="badge b-green"><span class="dot"></span>Pagado</span>'}</td><td>${p.estado==='Pendiente' ? `<button class="btn sm btn-primary" onclick="aprobarPago(${i})">Aprobar y pagar</button>` : `<span class="cell-sub">Liberado</span>`}</td></tr>`).join('') : `<tr><td colspan="6" class="empty-note">No hay liquidaciones pendientes.</td></tr>`; document.getElementById('tbl-pagos-historial').innerHTML = PAGOS_HISTORIAL.map(h=>`<tr><td class="cell-strong">${h.prov}</td><td class="tabular">${money(h.monto)}</td><td>${h.metodo}</td><td>${fecha(h.fecha)}</td><td class="cell-sub tabular">${h.ref}</td></tr>`).join(''); }
+function aprobarPago(i){ const p = PAGOS_PENDIENTES[i]; p.estado='Pagado'; showToast('Pago de '+money(p.monto)+' liberado a '+p.prov,'success'); updateNavCounts(); renderPagos(); }
+document.getElementById('btn-pagar-todos').addEventListener('click', ()=>{ const pend = PAGOS_PENDIENTES.filter(p=>p.estado==='Pendiente'); if(!pend.length){ showToast('No hay pagos pendientes por liberar'); return; } const total = pend.reduce((a,b)=>a+b.monto,0); pend.forEach(p=>p.estado='Pagado'); showToast(pend.length+' pagos liberados por un total de '+money(total),'success'); updateNavCounts(); renderPagos(); });
+document.getElementById('ciclo-select').addEventListener('change', e=>{ showToast('Ciclo de liquidación actualizado a: '+e.target.value,'success'); });
+function renderDisputas(){ const estado = document.getElementById('filtro-disp-estado').value; const rows = DISPUTAS.filter(d=>!estado || d.estado===estado); document.getElementById('tbl-disputas').innerHTML = rows.length ? rows.map(d=>`<tr><td class="cell-strong">${d.cliente}</td><td>${d.proveedor}</td><td>${d.tipo}</td><td>${badgeEstadoDisputa(d.estado)}</td><td>${fecha(d.fecha)}</td><td><button class="link-btn" onclick="abrirDisputa('${d.id}')">Ver caso →</button></td></tr>`).join('') : `<tr><td colspan="6" class="empty-note">No hay disputas en este estado.</td></tr>`; }
+function abrirDisputa(id){ const d = DISPUTAS.find(x=>x.id===id); const drawer = document.getElementById('drawer'); drawer.innerHTML = `<div class="drawer-head"><div><div class="eyebrow">Caso de disputa</div><h2>${d.cliente} vs. ${d.proveedor}</h2></div><button class="drawer-close" onclick="closeDrawer()">✕</button></div><div class="drawer-body"><div class="dsection"><div class="kv-grid"><div class="kv"><div class="k">Tipo</div><div class="v">${d.tipo}</div></div><div class="kv"><div class="k">Estado</div><div class="v">${badgeEstadoDisputa(d.estado)}</div></div><div class="kv"><div class="k">Fecha</div><div class="v">${fecha(d.fecha)}</div></div>${d.resolucion ? `<div class="kv"><div class="k">Resolución</div><div class="v">${d.resolucion}</div></div>` : ''}</div></div><div class="dsection"><h4>Evidencia — Cliente</h4><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div class="evidence-thumb">Captura de chat.jpg</div><div class="evidence-thumb">Foto adjunta.jpg</div></div></div><div class="dsection"><h4>Evidencia — Proveedor</h4><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div class="evidence-thumb">Comprobante de servicio.jpg</div></div></div>${d.estado==='Abierta' ? `<div class="dsection"><h4>Resolución del caso</h4><div style="display:flex; flex-direction:column; gap:10px;"><button class="btn btn-success-outline" onclick="resolverDisputa('${d.id}','Liberar pago al proveedor')">Liberar pago al proveedor</button><button class="btn btn-danger-outline" onclick="resolverDisputa('${d.id}','Reembolsar al cliente')">Reembolsar al cliente</button><button class="btn btn-orange" onclick="resolverDisputa('${d.id}','Aplicar strike al proveedor')">Aplicar strike al proveedor</button></div></div>` : ''}</div>`; document.getElementById('overlay').classList.add('open'); }
+function resolverDisputa(id, resolucion){ const d = DISPUTAS.find(x=>x.id===id); d.estado='Resuelta'; d.resolucion=resolucion; showToast('Caso resuelto: '+resolucion,'success'); updateNavCounts(); closeDrawer(); renderDisputas(); }
+function renderClientes(){ const q = document.getElementById('buscar-cliente').value.toLowerCase(); const rows = CLIENTES.filter(c => c.nombre.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)); document.getElementById('tbl-clientes').innerHTML = rows.length ? rows.map(c=>`<tr><td class="cell-strong">${c.nombre}</td><td class="cell-sub">${c.email}</td><td class="tabular">${c.reservas}</td><td class="tabular cell-strong">${money(c.gasto)}</td><td>${c.cuotas==='—' ? '<span class="cell-sub">—</span>' : '<span class="badge b-orange"><span class="dot"></span>'+c.cuotas+'</span>'}</td><td><button class="link-btn" onclick="abrirCliente('${c.email}')">Ver detalle →</button></td></tr>`).join('') : `<tr><td colspan="6" class="empty-note">No se encontraron clientes.</td></tr>`; }
+function abrirCliente(email){ const c = CLIENTES.find(x=>x.email===email); const drawer = document.getElementById('drawer'); drawer.innerHTML = `<div class="drawer-head"><div><div class="eyebrow">Cliente</div><h2>${c.nombre}</h2></div><button class="drawer-close" onclick="closeDrawer()">✕</button></div><div class="drawer-body"><div class="dsection"><div class="kv-grid"><div class="kv"><div class="k">Email</div><div class="v">${c.email}</div></div><div class="kv"><div class="k">Reservas totales</div><div class="v">${c.reservas}</div></div><div class="kv"><div class="k">Gasto total</div><div class="v">${money(c.gasto)}</div></div><div class="kv"><div class="k">Cuotas pendientes</div><div class="v">${c.cuotas}</div></div></div></div><div class="dsection"><h4>Historial de reservas y pagos</h4>${RESERVAS.filter(r=>r.cliente===c.nombre).map(r=>`<div class="doc-row"><div class="dname" style="white-space:normal;">${r.item}<div class="cell-sub">${fecha(r.fecha)}</div></div><div class="cell-strong">${money(r.monto)}</div></div>`).join('') || '<div class="empty-note">Sin reservas registradas.</div>'}</div><div class="dsection"><h4>Reembolso manual</h4><div style="display:flex; gap:10px;"><input class="input" style="width:140px" type="number" placeholder="Monto" id="refund-${c.email.replace(/[^a-zA-Z0-9]/g,'')}"><button class="btn btn-orange" onclick="reembolsoManual('${c.nombre}')">Procesar reembolso</button></div></div></div>`; document.getElementById('overlay').classList.add('open'); }
+function reembolsoManual(nombre){ showToast('Reembolso manual procesado para '+nombre,'success'); closeDrawer(); }
+function renderReservas(){ const estado = document.getElementById('filtro-res-estado').value; const municipio = document.getElementById('filtro-res-municipio').value; const desde = document.getElementById('filtro-res-desde').value; const hasta = document.getElementById('filtro-res-hasta').value; const rows = RESERVAS.filter(r => (!estado || r.estado===estado) && (!municipio || r.municipio===municipio) && (!desde || r.fecha>=desde) && (!hasta || r.fecha<=hasta) ); document.getElementById('tbl-reservas').innerHTML = rows.length ? rows.map(r=>`<tr><td class="cell-strong">${r.cliente}</td><td>${r.proveedor}</td><td>${r.item}</td><td>${fecha(r.fecha)}</td><td class="tabular cell-strong">${money(r.monto)}</td><td>${badgeEstadoReserva(r.estado)}</td></tr>`).join('') : `<tr><td colspan="6" class="empty-note">No hay reservas que coincidan con los filtros.</td></tr>`; }
+function renderConfig(){ document.getElementById('toggle-categorias').innerHTML = CATEGORIAS.map((c,i)=>`<div class="toggle-row"><div class="tname">${c}</div><label class="switch"><input type="checkbox" checked onchange="showToast('${c} '+(this.checked?'habilitada':'deshabilitada'))"><span class="slider"></span></label></div>`).join(''); document.getElementById('toggle-municipios').innerHTML = MUNICIPIOS.map((m,i)=>`<div class="toggle-row"><div class="tname">${m}</div><label class="switch"><input type="checkbox" ${i<6?'checked':''} onchange="showToast('${m} '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div>`).join(''); document.getElementById('legal-editor').value = LEGAL_TEXTOS.terminos; }
+document.querySelectorAll('.tab-btn[data-tab]').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.tab-btn[data-tab]').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tabpage').forEach(p=>p.classList.remove('active')); document.getElementById(btn.dataset.tab).classList.add('active'); }); });
+document.querySelectorAll('.tab-btn[data-legaltab]').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.tab-btn[data-legaltab]').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.getElementById('legal-editor').value = LEGAL_TEXTOS[btn.dataset.legaltab]; }); });
+function renderReportes(){ const maxR = Math.max(...RANKING_TOP.map(r=>r.v)); document.getElementById('ranking-top').innerHTML = RANKING_TOP.map(r=>`<div class="hbar-row"><div class="name">${r.n}</div><div class="hbar-track"><div class="hbar-fill" style="width:${r.v/maxR*100}%"></div></div><div class="hbar-num tabular">${r.v} res.</div></div>`).join(''); const maxD = Math.max(...DEMANDA_MUNICIPIO.map(d=>d.v)); document.getElementById('demanda-municipio').innerHTML = DEMANDA_MUNICIPIO.map(d=>`<div class="hbar-row"><div class="name">${d.m}</div><div class="hbar-track"><div class="hbar-fill orange" style="width:${d.v/maxD*100}%"></div></div><div class="hbar-num tabular">${d.v} pts.</div></div>`).join(''); const gmv=[28400,31200,35900,40100,44700,48320]; const meses=['Feb','Mar','Abr','May','Jun','Jul']; const maxG=Math.max(...gmv); document.getElementById('gmv-chart').innerHTML = gmv.map((v,i)=>`<div class="bar-col"><div class="bar-val">$${(v/1000).toFixed(1)}k</div><div class="bar" style="height:${v/maxG*100}%"></div><div class="bar-label">${meses[i]}</div></div>`).join(''); }
+function fillMunicipioSelects(){ ['filtro-prov-municipio','filtro-res-municipio'].forEach(id=>{ const sel=document.getElementById(id); MUNICIPIOS.forEach(m=>{ const o=document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o); }); }); }
+['filtro-prov-estado','filtro-prov-municipio','buscar-prov'].forEach(id=>document.getElementById(id).addEventListener('input', renderProveedores));
+document.getElementById('filtro-disp-estado').addEventListener('change', renderDisputas);
+document.getElementById('buscar-cliente').addEventListener('input', renderClientes);
+['filtro-res-estado','filtro-res-municipio','filtro-res-desde','filtro-res-hasta'].forEach(id=>document.getElementById(id).addEventListener('input', renderReservas));
+fillMunicipioSelects(); updateNavCounts(); renderWeeklyChart(); renderAlerts(); renderProveedores(); renderPagos(); renderDisputas(); renderClientes(); renderReservas(); renderConfig(); renderReportes();
+const AUTH = { MAX_ATTEMPTS: 3, LOCKOUT_SECONDS: 300, IDLE_LIMIT_MS: 5 * 60 * 1000, attempts: 0, pendingEmail: '', lockoutInterval: null, idleTimer: null, authenticated: false, };
+function showStep(id){ document.querySelectorAll('.login-step').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function loginError(msg){ const el = document.getElementById('login-error'); el.textContent = msg; el.classList.add('show'); }
+function clearLoginError(){ document.getElementById('login-error').classList.remove('show'); }
+document.getElementById('form-credentials').addEventListener('submit', async function(e){
+  e.preventDefault();
+  clearLoginError();
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  if(AUTH.attempts >= AUTH.MAX_ATTEMPTS){ startLockout(); return; }
+  if(!email || !pass){ loginError('Ingresa un correo y una contraseña para continuar.'); return; }
+  const btn = document.getElementById('btn-continue');
+  btn.disabled = true;
+
+  let { data: signInData, error: signInErr } = await sb.auth.signInWithPassword({ email, password: pass });
+
+  if(signInErr){
+    const { count: adminCount } = await sb.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'admin');
+    if(adminCount > 0){
+      AUTH.attempts++;
+      btn.disabled = false;
+      loginError('Correo o contraseña incorrectos.');
+      return;
+    }
+    const { data: signUpData, error: signUpErr } = await sb.auth.signUp({ email, password: pass });
+    if(signUpErr || !signUpData.session){
+      btn.disabled = false;
+      loginError(signUpErr ? signUpErr.message : 'No se pudo crear la cuenta. Revisa tu correo para confirmarla y vuelve a intentar.');
+      return;
+    }
+    await sb.from('profiles').upsert({ id: signUpData.user.id, role: 'admin' });
+    signInData = signUpData;
+  } else {
+    const { data: profile } = await sb.from('profiles').select('role').eq('id', signInData.user.id).maybeSingle();
+    if(!profile || profile.role !== 'admin'){
+      await sb.auth.signOut();
+      AUTH.attempts++;
+      btn.disabled = false;
+      loginError('Esta cuenta no tiene permisos de administrador.');
+      return;
+    }
+  }
+
+  btn.disabled = false;
+  AUTH.attempts = 0;
+  AUTH.pendingEmail = email;
+  completeLogin();
+});
+document.getElementById('toggle-pass').addEventListener('click', ()=>{ const inp = document.getElementById('login-password'); inp.type = inp.type === 'password' ? 'text' : 'password'; });
+function startLockout(){ showStep('step-lockout'); let remaining = AUTH.LOCKOUT_SECONDS; updateLockoutTimer(remaining); clearInterval(AUTH.lockoutInterval); AUTH.lockoutInterval = setInterval(()=>{ remaining--; updateLockoutTimer(remaining); if(remaining <= 0){ clearInterval(AUTH.lockoutInterval); AUTH.attempts = 0; clearLoginError(); showStep('step-credentials'); } }, 1000); }
+function updateLockoutTimer(s){ const m = Math.floor(s/60).toString().padStart(2,'0'); const ss = (s%60).toString().padStart(2,'0'); document.getElementById('lockout-timer').textContent = m+':'+ss; }
+function completeLogin(){ AUTH.authenticated = true; document.getElementById('login-screen').classList.add('hidden'); document.querySelector('.app').classList.add('unlocked'); document.getElementById('login-password').value = ''; resetIdleTimer(); showToast('Sesión iniciada como Administrador', 'success'); loadRealData(); }
+
+async function loadRealData(){
+  const { data: bookings, error } = await sb.from('bookings')
+    .select('*, listings(title), providers(business_name), profiles(full_name)')
+    .order('created_at', { ascending: false });
+  const realPanel = document.getElementById('real-reservas-body');
+  if(error){
+    realPanel.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Error cargando datos reales: '+error.message+'</td></tr>';
+    return;
+  }
+  if(!bookings.length){
+    realPanel.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Todavía no hay reservas reales en la plataforma.</td></tr>';
+    return;
+  }
+  const statusBadge = { pending: 'b-orange', confirmed: 'b-blue', completed: 'b-green', cancelled: 'b-red' };
+  const statusLabel = { pending: 'Pendiente confirmación', confirmed: 'Confirmada', completed: 'Completada', cancelled: 'Cancelada' };
+  realPanel.innerHTML = bookings.map(b => `
+    <tr>
+      <td class="cell-strong">${b.profiles?.full_name || 'Viajero'}</td>
+      <td>${b.providers?.business_name || ''}</td>
+      <td>${b.listings?.title || ''}</td>
+      <td>${b.booking_date}</td>
+      <td class="tabular cell-strong">$${b.amount}</td>
+      <td><span class="badge ${statusBadge[b.status] || 'b-gray'}"><span class="dot"></span>${statusLabel[b.status] || b.status}</span></td>
+    </tr>`).join('');
+}
+function doLogout(){ AUTH.authenticated = false; clearInterval(AUTH.idleTimer); document.querySelector('.app').classList.remove('unlocked'); document.getElementById('idle-lock').classList.remove('show'); document.getElementById('login-screen').classList.remove('hidden'); document.getElementById('login-email').value = ''; document.getElementById('login-password').value = ''; clearLoginError(); showStep('step-credentials'); }
+document.getElementById('btn-logout').addEventListener('click', doLogout);
+document.getElementById('idle-logout').addEventListener('click', doLogout);
+function resetIdleTimer(){ clearTimeout(AUTH.idleTimer); if(!AUTH.authenticated) return; AUTH.idleTimer = setTimeout(()=>{ document.getElementById('idle-lock').classList.add('show'); }, AUTH.IDLE_LIMIT_MS); }
+['mousemove','keydown','click','scroll','touchstart'].forEach(evt=>{ document.addEventListener(evt, ()=>{ if(AUTH.authenticated) resetIdleTimer(); }, {passive:true}); });
+document.getElementById('form-idle').addEventListener('submit', function(e){ e.preventDefault(); const el = document.getElementById('idle-error'); const pass = document.getElementById('idle-password').value; if(pass !== AUTH.MOCK_PASSWORD){ el.textContent = 'Contraseña incorrecta.'; el.classList.add('show'); return; } el.classList.remove('show'); document.getElementById('idle-password').value = ''; document.getElementById('idle-lock').classList.remove('show'); resetIdleTimer(); showToast('Sesión reanudada', 'success'); });
+</script>
+
+</body></html>
