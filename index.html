@@ -550,6 +550,10 @@ tbody tr:last-child td{ border-bottom:none; }
         </div>
       </section>
       <section class="page" id="page-proveedores">
+        <div class="panel" style="margin-bottom:22px;">
+          <div class="panel-head"><h3>Proveedores reales (Supabase)</h3><span class="hint">Aprobar habilita el micrositio público del proveedor</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Municipio</th><th>Listados</th><th>Registro</th><th>Verificación</th><th>Acción</th></tr></thead><tbody id="real-proveedores-body"><tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Cargando...</td></tr></tbody></table></div>
+        </div>
         <div class="toolbar">
           <select class="select" id="filtro-prov-estado"><option value="">Todos los estados</option><option>Pendiente verificación</option><option>Activo</option><option>Suspendido</option></select>
           <select class="select" id="filtro-prov-municipio"><option value="">Todos los municipios</option><option value="San Cristóbal">San Cristóbal</option><option value="Táriba">Táriba</option><option value="Rubio">Rubio</option><option value="San Antonio del Táchira">San Antonio del Táchira</option><option value="Ureña">Ureña</option><option value="Colón">Colón</option><option value="Capacho">Capacho</option><option value="La Grita">La Grita</option><option value="Pregonero">Pregonero</option><option value="Queniquea">Queniquea</option><option value="Michelena">Michelena</option><option value="Lobatera">Lobatera</option></select>
@@ -797,7 +801,53 @@ function startLockout(){ showStep('step-lockout'); let remaining = AUTH.LOCKOUT_
 function updateLockoutTimer(s){ const m = Math.floor(s/60).toString().padStart(2,'0'); const ss = (s%60).toString().padStart(2,'0'); document.getElementById('lockout-timer').textContent = m+':'+ss; }
 function completeLogin(){ AUTH.authenticated = true; document.getElementById('login-screen').classList.add('hidden'); document.querySelector('.app').classList.add('unlocked'); document.getElementById('login-password').value = ''; resetIdleTimer(); showToast('Sesión iniciada como Administrador', 'success'); loadRealData(); }
 
+const VERIF_LABEL = { pending: 'Pendiente', in_review: 'En revisión', approved: 'Aprobado', rejected: 'Rechazado' };
+const VERIF_BADGE = { pending: 'b-orange', in_review: 'b-blue', approved: 'b-green', rejected: 'b-red' };
+
+async function loadRealProviders(){
+  const body = document.getElementById('real-proveedores-body');
+  const { data: providers, error } = await sb.from('providers')
+    .select('*, listings(id)')
+    .order('created_at', { ascending: false });
+  if(error){
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Error cargando proveedores: '+error.message+'</td></tr>';
+    return;
+  }
+  if(!providers.length){
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Todavía no hay proveedores registrados.</td></tr>';
+    return;
+  }
+  body.innerHTML = providers.map(p => {
+    const st = p.verification_status || 'pending';
+    const acciones = st === 'approved'
+      ? `<button class="link-btn" onclick="setVerification('${p.id}','pending')">Revocar micrositio</button>`
+      : `<button class="link-btn" onclick="setVerification('${p.id}','approved')">Aprobar</button>
+         <button class="link-btn" style="color:var(--red,#C0122D)" onclick="setVerification('${p.id}','rejected')">Rechazar</button>`;
+    return `<tr>
+      <td class="cell-strong">${p.business_name || '—'}<div class="cell-sub">PRV-${p.id.slice(0,8).toUpperCase()}</div></td>
+      <td>${p.municipio || '—'}</td>
+      <td class="tabular">${(p.listings || []).length}</td>
+      <td class="cell-sub">${p.created_at ? new Date(p.created_at).toLocaleDateString('es-VE') : '—'}</td>
+      <td><span class="badge ${VERIF_BADGE[st] || 'b-gray'}"><span class="dot"></span>${VERIF_LABEL[st] || st}</span></td>
+      <td>${acciones}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function setVerification(providerId, status){
+  const { error } = await sb.from('providers').update({
+    verification_status: status,
+    verified: status === 'approved'
+  }).eq('id', providerId);
+  if(error){ showToast('Error: ' + error.message, 'warn'); return; }
+  showToast(status === 'approved' ? 'Proveedor aprobado — su micrositio quedó habilitado'
+          : status === 'rejected' ? 'Proveedor rechazado'
+          : 'Micrositio revocado', status === 'rejected' ? 'warn' : 'success');
+  await loadRealProviders();
+}
+
 async function loadRealData(){
+  loadRealProviders();
   const { data: bookings, error } = await sb.from('bookings')
     .select('*, listings(title), providers(business_name), profiles(full_name)')
     .order('created_at', { ascending: false });
@@ -827,7 +877,7 @@ document.getElementById('btn-logout').addEventListener('click', doLogout);
 document.getElementById('idle-logout').addEventListener('click', doLogout);
 function resetIdleTimer(){ clearTimeout(AUTH.idleTimer); if(!AUTH.authenticated) return; AUTH.idleTimer = setTimeout(()=>{ document.getElementById('idle-lock').classList.add('show'); }, AUTH.IDLE_LIMIT_MS); }
 ['mousemove','keydown','click','scroll','touchstart'].forEach(evt=>{ document.addEventListener(evt, ()=>{ if(AUTH.authenticated) resetIdleTimer(); }, {passive:true}); });
-document.getElementById('form-idle').addEventListener('submit', function(e){ e.preventDefault(); const el = document.getElementById('idle-error'); const pass = document.getElementById('idle-password').value; if(pass !== AUTH.MOCK_PASSWORD){ el.textContent = 'Contraseña incorrecta.'; el.classList.add('show'); return; } el.classList.remove('show'); document.getElementById('idle-password').value = ''; document.getElementById('idle-lock').classList.remove('show'); resetIdleTimer(); showToast('Sesión reanudada', 'success'); });
+document.getElementById('form-idle').addEventListener('submit', async function(e){ e.preventDefault(); const el = document.getElementById('idle-error'); const pass = document.getElementById('idle-password').value; const { data: u } = await sb.auth.getUser(); const email = u?.user?.email; if(!email){ el.textContent = 'Tu sesión expiró. Vuelve a iniciar sesión.'; el.classList.add('show'); return; } const { error: reauthErr } = await sb.auth.signInWithPassword({ email, password: pass }); if(reauthErr){ el.textContent = 'Contraseña incorrecta.'; el.classList.add('show'); return; } el.classList.remove('show'); document.getElementById('idle-password').value = ''; document.getElementById('idle-lock').classList.remove('show'); resetIdleTimer(); showToast('Sesión reanudada', 'success'); });
 </script>
 
 </body></html>
