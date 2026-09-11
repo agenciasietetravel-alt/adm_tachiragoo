@@ -473,6 +473,11 @@ tbody tr:last-child td{ border-bottom:none; }
         Proveedores
         <span class="badge-count" id="nav-count-proveedores">2</span>
       </button>
+      <button class="nav-item" data-page="vehiculos">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17h14M5 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm14 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0z"></path><path d="M3 17v-5l2-5h12l3 5v5"></path></svg>
+        Vehículos
+        <span class="badge-count" id="nav-count-vehiculos">0</span>
+      </button>
       <button class="nav-item" data-page="pagos">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
         Pagos y liquidaciones
@@ -561,6 +566,13 @@ tbody tr:last-child td{ border-bottom:none; }
           <input class="input search" id="buscar-prov" placeholder="Buscar proveedor…">
         </div>
         <div class="panel"><div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Municipio</th><th>Categoría</th><th>Estado</th><th>Calificación</th><th>Registro</th><th>Acciones</th></tr></thead><tbody id="tbl-proveedores"><tr><td class="cell-strong">Posada El Cafetal<div class="cell-sub">5 listados activos</div></td><td>Queniquea</td><td>Posada</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★★</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.8</span></td><td>11 feb. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p1')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Aventura Extrema Táchira<div class="cell-sub">8 listados activos</div></td><td>Pregonero</td><td>Tour de Aventura</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★★</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.6</span></td><td>20 ene. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p2')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Posada Los Frailejones<div class="cell-sub">1 listados activos</div></td><td>Pregonero</td><td>Posada</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente verificación</span></td><td><span class="cell-sub">Sin calificar</span></td><td>28 jun. 2026</td><td><button class="link-btn" onclick="abrirProveedor('p3')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Tours Andinos GT<div class="cell-sub">12 listados activos</div></td><td>San Cristóbal</td><td>Tour Cultural</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★★</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.9</span></td><td>05 nov. 2023</td><td><button class="link-btn" onclick="abrirProveedor('p4')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Rutas del Táchira<div class="cell-sub">6 listados activos</div></td><td>San Cristóbal</td><td>Tour de Aventura</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★★</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.7</span></td><td>14 mar. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p5')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Posada Buena Vista<div class="cell-sub">2 listados activos</div></td><td>Táriba</td><td>Posada</td><td><span class="badge b-red"><span class="dot"></span>Suspendido</span></td><td><span class="stars">★★★☆☆</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">3.2</span></td><td>01 sept. 2023</td><td><button class="link-btn" onclick="abrirProveedor('p6')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Sabores de la Frontera<div class="cell-sub">4 listados activos</div></td><td>San Antonio del Táchira</td><td>Tour Gastronómico</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★★</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.5</span></td><td>19 may. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p7')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Páramo Adventures<div class="cell-sub">1 listados activos</div></td><td>Pregonero</td><td>Actividad Extrema</td><td><span class="badge b-orange"><span class="dot"></span>Pendiente verificación</span></td><td><span class="cell-sub">Sin calificar</span></td><td>01 jul. 2026</td><td><button class="link-btn" onclick="abrirProveedor('p8')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Posada Colonial La Grita<div class="cell-sub">3 listados activos</div></td><td>La Grita</td><td>Posada</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★☆</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.4</span></td><td>02 abr. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p9')">Ver detalle →</button></td></tr><tr><td class="cell-strong">Ecoturismo Capacho<div class="cell-sub">5 listados activos</div></td><td>Capacho</td><td>Tour Cultural</td><td><span class="badge b-green"><span class="dot"></span>Activo</span></td><td><span class="stars">★★★★☆</span> <span class="tabular" style="color:var(--gray-600);font-weight:700">4.3</span></td><td>10 jun. 2024</td><td><button class="link-btn" onclick="abrirProveedor('p10')">Ver detalle →</button></td></tr></tbody></table></div></div>
+      </section>
+      <section class="page" id="page-vehiculos">
+        <div class="panel" style="margin-bottom:22px;">
+          <div class="panel-head"><h3>Cola de revisión de vehículos</h3><span class="hint">Un vehículo solo se publica cuando aprueba las dos revisiones</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Vehículo</th><th>Dueño</th><th>Municipio</th><th>Precio/día</th><th>Revisión legal</th><th>Revisión física</th><th>Visible</th></tr></thead><tbody id="vehiculos-body"><tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:20px">Cargando...</td></tr></tbody></table></div>
+        </div>
+        <div id="vehiculo-detalle"></div>
       </section>
       <section class="page" id="page-pagos">
         <div class="panel" style="margin-bottom:18px;"><div class="panel-head"><h3>Ciclo de liquidación actual</h3></div><div class="panel-body" style="display:flex; align-items:center; gap:24px; flex-wrap:wrap;"><div class="kv"><div class="k">Ciclo activo</div><div class="v">Quincenal</div></div><div class="kv"><div class="k">Próximo corte</div><div class="v">18 jul. 2026</div></div><div class="kv"><div class="k">Retención por defecto</div><div class="v">30% anticipo · 70% post-servicio</div></div><div class="spacer"></div><select class="select" id="ciclo-select"><option>Quincenal</option><option>Semanal</option><option>Mensual</option></select></div></div>
@@ -715,7 +727,7 @@ function badgeEstadoDisputa(e){ return e==='Abierta' ? '<span class="badge b-ora
 function badgeDoc(e){ if(e==='Aprobado') return '<span class="badge b-green"><span class="dot"></span>Aprobado</span>'; if(e==='Rechazado') return '<span class="badge b-red"><span class="dot"></span>Rechazado</span>'; return '<span class="badge b-orange"><span class="dot"></span>En revisión</span>'; }
 function showToast(msg, type){ const wrap=document.getElementById('toast-wrap'); const t=document.createElement('div'); t.className='toast'+(type?' '+type:''); t.textContent=msg; wrap.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2600); }
 function updateNavCounts(){ document.getElementById('nav-count-proveedores').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('nav-count-pagos').textContent = PAGOS_PENDIENTES.length; document.getElementById('nav-count-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-verif').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('ticker-pagos').textContent = money(PAGOS_PENDIENTES.reduce((a,b)=>a+b.monto,0)); }
-const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
+const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', vehiculos:'Vehículos · cola de revisión', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
 document.querySelectorAll('.nav-item').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); const page = btn.dataset.page; document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-'+page).classList.add('active'); document.getElementById('page-title').textContent = PAGE_TITLES[page]; document.getElementById('sidebar').classList.remove('open'); }); });
 function renderWeeklyChart(){ const data=[42,38,55,49,61,58,66,72]; const max=Math.max(...data); document.getElementById('weekly-chart').innerHTML = data.map((v,i)=>`<div class="bar-col"><div class="bar-val">${v}</div><div class="bar" style="height:${(v/max*100)}%"></div><div class="bar-label">S${i+1}</div></div>`).join(''); }
 function renderAlerts(){ const alerts=[ {ic:'warn', t1:'2 proveedores esperan verificación de documentos', t2:'Páramo Adventures, Posada Los Frailejones', link:'proveedores'}, {ic:'danger', t1:'3 disputas sin resolver', t2:'La más antigua lleva 4 días abierta', link:'disputas'}, {ic:'info', t1:'5 liquidaciones listas para pago', t2:'Corte quincenal el 18 de julio', link:'pagos'}, {ic:'warn', t1:'Aventura Extrema Táchira: pago próximo a vencer', t2:'Vence en 2 días — $1.240', link:'pagos'}, ]; document.getElementById('alerts-feed').innerHTML = alerts.map(a=>`<div class="alert-item"><div class="alert-ic ${a.ic}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="alert-txt"><div class="t1">${a.t1}</div><div class="t2">${a.t2}</div></div><button class="alert-link" onclick="goTo('${a.link}')">Ver</button></div>`).join(''); }
@@ -846,7 +858,124 @@ async function setVerification(providerId, status){
   await loadRealProviders();
 }
 
+const VEH_REV_LABEL = { pending:'Pendiente', in_review:'En revisión', approved:'Aprobada', rejected:'Rechazada' };
+const VEH_REV_BADGE = { pending:'b-orange', in_review:'b-blue', approved:'b-green', rejected:'b-red' };
+const VEH_DOC_LABEL_ADM = { titulo:'Título de propiedad', seguro:'Póliza de seguro', rcv:'RCV', cedula_propietario:'Cédula del propietario', inspeccion_tecnica:'Inspección técnica', otro:'Otro' };
+let VEHICULOS = [];
+
+async function loadVehiculos(){
+  const body = document.getElementById('vehiculos-body');
+  const { data, error } = await sb.from('vehicles')
+    .select('*, profiles:owner_id(full_name), providers(business_name)')
+    .order('created_at', { ascending:false });
+  if(error){
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:20px">Error cargando vehículos: '+error.message+'</td></tr>';
+    return;
+  }
+  VEHICULOS = data || [];
+  const pendientes = VEHICULOS.filter(v => !v.is_approved).length;
+  const cnt = document.getElementById('nav-count-vehiculos');
+  if(cnt) cnt.textContent = pendientes;
+
+  if(VEHICULOS.length === 0){
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:20px">Todavía no hay vehículos publicados.</td></tr>';
+    document.getElementById('vehiculo-detalle').innerHTML = '';
+    return;
+  }
+  body.innerHTML = VEHICULOS.map(v => `
+    <tr>
+      <td class="cell-strong">${v.title||'—'}<div class="cell-sub">${v.brand||''} ${v.model||''} ${v.year||''}</div></td>
+      <td>${(v.providers&&v.providers.business_name) || (v.profiles&&v.profiles.full_name) || '—'}</td>
+      <td>${v.municipio||'—'}</td>
+      <td class="tabular">$${v.price_per_day}</td>
+      <td><span class="badge ${VEH_REV_BADGE[v.legal_review_status]||'b-gray'}"><span class="dot"></span>${VEH_REV_LABEL[v.legal_review_status]||v.legal_review_status}</span></td>
+      <td><span class="badge ${VEH_REV_BADGE[v.physical_review_status]||'b-gray'}"><span class="dot"></span>${VEH_REV_LABEL[v.physical_review_status]||v.physical_review_status}</span></td>
+      <td>${v.is_approved ? '<span class="badge b-green"><span class="dot"></span>Sí</span>' : '<span class="badge b-gray"><span class="dot"></span>No</span>'}
+          <button class="link-btn" onclick="abrirVehiculo('${v.id}')">Revisar →</button></td>
+    </tr>`).join('');
+}
+
+async function abrirVehiculo(id){
+  const v = VEHICULOS.find(x => x.id === id);
+  if(!v) return;
+  const cont = document.getElementById('vehiculo-detalle');
+  const { data: docs } = await sb.from('vehicle_documents').select('*').eq('vehicle_id', id);
+  const { data: imgs } = await sb.from('vehicle_images').select('*').eq('vehicle_id', id).order('position');
+
+  // Los documentos viven en un bucket privado: hay que firmar cada URL para poder verlos
+  const docRows = [];
+  for(const d of (docs||[])){
+    let href = '#';
+    const { data: signed } = await sb.storage.from('vehicle-docs').createSignedUrl(d.url, 300);
+    if(signed && signed.signedUrl) href = signed.signedUrl;
+    docRows.push(`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee">
+      <span>📄 ${VEH_DOC_LABEL_ADM[d.kind]||d.kind}</span>
+      <a class="link-btn" href="${href}" target="_blank" rel="noopener">Abrir documento →</a></div>`);
+  }
+  const placa = (docs||[]).map(d=>d.plate).filter(Boolean)[0] || '—';
+  const fotos = (v.cover_image_url ? [v.cover_image_url] : []).concat((imgs||[]).map(i=>i.url));
+
+  cont.innerHTML = `
+  <div class="panel">
+    <div class="panel-head"><h3>${v.title}</h3><span class="hint">${v.brand||''} ${v.model||''} ${v.year||''} · ${v.municipio||''}</span></div>
+    <div style="padding:18px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+        ${fotos.length ? fotos.map(u=>`<img src="${u}" style="width:132px;height:92px;object-fit:cover;border-radius:8px;border:1px solid #e5e5e5">`).join('')
+                       : '<span class="cell-sub">Sin fotos cargadas — la revisión física no puede hacerse sin ellas.</span>'}
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px">
+        <div>
+          <h4 style="margin:0 0 10px">Revisión legal</h4>
+          <div class="cell-sub" style="margin-bottom:8px">Placa: <strong>${placa}</strong></div>
+          ${docRows.join('') || '<div class="cell-sub" style="padding:10px 0">El dueño no ha subido documentos.</div>'}
+          <textarea id="nota-legal" placeholder="Nota para el dueño (opcional)" style="width:100%;margin-top:12px;padding:9px;border:1px solid #ddd;border-radius:8px;font-family:inherit;font-size:13px" rows="2"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="link-btn" onclick="revisarVehiculo('${v.id}','legal','approved')">Aprobar legal</button>
+            <button class="link-btn" style="color:#C0122D" onclick="revisarVehiculo('${v.id}','legal','rejected')">Rechazar legal</button>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="margin:0 0 10px">Revisión física</h4>
+          <div class="cell-sub">Estado declarado: ${v.description || 'sin descripción'}</div>
+          <div class="cell-sub" style="margin-top:6px">Entrega: ${v.pickup_address || 'sin dirección'}${v.lat!=null?` (${Number(v.lat).toFixed(4)}, ${Number(v.lng).toFixed(4)})`:''}</div>
+          <textarea id="nota-fisica" placeholder="Nota para el dueño (opcional)" style="width:100%;margin-top:12px;padding:9px;border:1px solid #ddd;border-radius:8px;font-family:inherit;font-size:13px" rows="2"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="link-btn" onclick="revisarVehiculo('${v.id}','fisica','approved')">Aprobar física</button>
+            <button class="link-btn" style="color:#C0122D" onclick="revisarVehiculo('${v.id}','fisica','rejected')">Rechazar física</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  cont.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+async function revisarVehiculo(id, tipo, estado){
+  const notaEl = document.getElementById(tipo === 'legal' ? 'nota-legal' : 'nota-fisica');
+  const nota = notaEl ? notaEl.value.trim() || null : null;
+  const patch = tipo === 'legal'
+    ? { legal_review_status: estado, legal_review_notes: nota, legal_reviewed_at: new Date().toISOString() }
+    : { physical_review_status: estado, physical_review_notes: nota, physical_reviewed_at: new Date().toISOString() };
+
+  const { error } = await sb.from('vehicles').update(patch).eq('id', id);
+  if(error){ showToast('Error: ' + error.message, 'warn'); return; }
+
+  await loadVehiculos();
+  const v = VEHICULOS.find(x => x.id === id);
+  if(estado === 'rejected'){
+    showToast('Revisión ' + tipo + ' rechazada — el vehículo queda oculto', 'warn');
+  } else if(v && v.is_approved){
+    showToast('Vehículo aprobado en las dos revisiones: ya es visible para los viajeros', 'success');
+  } else {
+    showToast('Revisión ' + tipo + ' aprobada — falta la otra para publicarlo', 'success');
+  }
+  abrirVehiculo(id);
+}
+
 async function loadRealData(){
+  loadVehiculos();
   loadRealProviders();
   const { data: bookings, error } = await sb.from('bookings')
     .select('*, listings(title), providers(business_name), profiles(full_name)')
