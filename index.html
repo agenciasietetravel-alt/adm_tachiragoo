@@ -478,6 +478,11 @@ tbody tr:last-child td{ border-bottom:none; }
         Vehículos
         <span class="badge-count" id="nav-count-vehiculos">0</span>
       </button>
+      <button class="nav-item" data-page="cotizaciones">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Cotizaciones
+        <span class="badge-count" id="nav-count-cotizaciones">0</span>
+      </button>
       <button class="nav-item" data-page="pagos">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
         Pagos y liquidaciones
@@ -574,6 +579,16 @@ tbody tr:last-child td{ border-bottom:none; }
         </div>
         <div id="vehiculo-detalle"></div>
       </section>
+      <section class="page" id="page-cotizaciones">
+        <div class="toolbar">
+          <select class="select" id="filtro-cot-tipo"><option value="">Todos los tipos</option><option value="vuelo">Vuelos</option><option value="tour_nacional">Tours nacionales</option><option value="tour_internacional">Tours internacionales</option></select>
+          <select class="select" id="filtro-cot-estado"><option value="">Todos los estados</option><option value="nueva">Nuevas</option><option value="contactada">Contactadas</option><option value="cotizada">Cotizadas</option><option value="cerrada">Cerradas</option><option value="descartada">Descartadas</option></select>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Solicitudes de cotización</h3><span class="hint">Llegan del cotizador de vuelos y de los tours</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Ref.</th><th>Tipo</th><th>Cliente</th><th>Trayecto</th><th>Fechas</th><th>Personas</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="tbl-cotizaciones"><tr><td colspan="8" style="text-align:center;color:var(--gray-400);padding:20px">Cargando...</td></tr></tbody></table></div>
+        </div>
+      </section>
       <section class="page" id="page-pagos">
         <div class="panel" style="margin-bottom:18px;"><div class="panel-head"><h3>Ciclo de liquidación actual</h3></div><div class="panel-body" style="display:flex; align-items:center; gap:24px; flex-wrap:wrap;"><div class="kv"><div class="k">Ciclo activo</div><div class="v">Quincenal</div></div><div class="kv"><div class="k">Próximo corte</div><div class="v">18 jul. 2026</div></div><div class="kv"><div class="k">Retención por defecto</div><div class="v">30% anticipo · 70% post-servicio</div></div><div class="spacer"></div><select class="select" id="ciclo-select"><option>Quincenal</option><option>Semanal</option><option>Mensual</option></select></div></div>
         <div class="toolbar"><h3 style="margin:0; font-size:15px;">Liquidaciones pendientes</h3><div class="spacer"></div><button class="btn btn-orange" id="btn-pagar-todos">Pagar todos los pendientes</button></div>
@@ -633,80 +648,18 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const MUNICIPIOS = ['San Cristóbal','Táriba','Rubio','San Antonio del Táchira','Ureña','Colón','Capacho','La Grita','Pregonero','Queniquea','Michelena','Lobatera'];
 const CATEGORIAS = ['Tour de Aventura','Posada','Tour Gastronómico','Tour Cultural','Actividad Extrema'];
-let PROVEEDORES = [
-  {id:'p1', nombre:'Posada El Cafetal', municipio:'Queniquea', categoria:'Posada', estado:'Activo', rating:4.8, registro:'2024-02-11', listados:5, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Registro Mercantil', e:'Aprobado'},{n:'Permiso municipal de turismo', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:820, metodo:'Pago Móvil'},{m:'2026-05-30', monto:640, metodo:'Pago Móvil'}]},
-  {id:'p2', nombre:'Aventura Extrema Táchira', municipio:'Pregonero', categoria:'Tour de Aventura', estado:'Activo', rating:4.6, registro:'2024-01-20', listados:8, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Seguro de responsabilidad civil', e:'Aprobado'},{n:'Certificación de guías', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:1240, metodo:'Zelle'},{m:'2026-05-30', monto:980, metodo:'Zelle'}]},
-  {id:'p3', nombre:'Posada Los Frailejones', municipio:'Pregonero', categoria:'Posada', estado:'Pendiente verificación', rating:0, registro:'2026-06-28', listados:1, docs:[{n:'Cédula/RIF representante', e:'En revisión'},{n:'Registro Mercantil', e:'En revisión'},{n:'Fotos del inmueble', e:'Aprobado'}], pagos:[]},
-  {id:'p4', nombre:'Tours Andinos GT', municipio:'San Cristóbal', categoria:'Tour Cultural', estado:'Activo', rating:4.9, registro:'2023-11-05', listados:12, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Permiso municipal de turismo', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:1560, metodo:'Binance/USDT'},{m:'2026-05-30', monto:1410, metodo:'Binance/USDT'}]},
-  {id:'p5', nombre:'Rutas del Táchira', municipio:'San Cristóbal', categoria:'Tour de Aventura', estado:'Activo', rating:4.7, registro:'2024-03-14', listados:6, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Seguro de responsabilidad civil', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:910, metodo:'Pago Móvil'}]},
-  {id:'p6', nombre:'Posada Buena Vista', municipio:'Táriba', categoria:'Posada', estado:'Suspendido', rating:3.2, registro:'2023-09-01', listados:2, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Registro Mercantil', e:'Aprobado'}], pagos:[{m:'2026-04-15', monto:340, metodo:'Nequi (COP)'}], motivoSuspension:'Múltiples quejas de clientes por no-show reiterado.'},
-  {id:'p7', nombre:'Sabores de la Frontera', municipio:'San Antonio del Táchira', categoria:'Tour Gastronómico', estado:'Activo', rating:4.5, registro:'2024-05-19', listados:4, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Permiso sanitario', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:560, metodo:'Zelle'}]},
-  {id:'p8', nombre:'Páramo Adventures', municipio:'Pregonero', categoria:'Actividad Extrema', estado:'Pendiente verificación', rating:0, registro:'2026-07-01', listados:1, docs:[{n:'Cédula/RIF representante', e:'En revisión'},{n:'Seguro de responsabilidad civil', e:'En revisión'},{n:'Certificación de guías', e:'Rechazado'}], pagos:[]},
-  {id:'p9', nombre:'Posada Colonial La Grita', municipio:'La Grita', categoria:'Posada', estado:'Activo', rating:4.4, registro:'2024-04-02', listados:3, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Registro Mercantil', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:410, metodo:'Pago Móvil'}]},
-  {id:'p10', nombre:'Ecoturismo Capacho', municipio:'Capacho', categoria:'Tour Cultural', estado:'Activo', rating:4.3, registro:'2024-06-10', listados:5, docs:[{n:'Cédula/RIF representante', e:'Aprobado'},{n:'Permiso municipal de turismo', e:'Aprobado'}], pagos:[{m:'2026-06-15', monto:380, metodo:'Nequi (COP)'}]},
-];
-let PAGOS_PENDIENTES = [
-  {prov:'Posada El Cafetal', monto:820, reservas:6, metodo:'Pago Móvil', estado:'Pendiente'},
-  {prov:'Aventura Extrema Táchira', monto:1240, reservas:11, metodo:'Zelle', estado:'Pendiente'},
-  {prov:'Tours Andinos GT', monto:1560, reservas:14, metodo:'Binance/USDT', estado:'Pendiente'},
-  {prov:'Rutas del Táchira', monto:910, reservas:8, metodo:'Pago Móvil', estado:'Pendiente'},
-  {prov:'Sabores de la Frontera', monto:560, reservas:5, metodo:'Zelle', estado:'Pendiente'},
-  {prov:'Posada Colonial La Grita', monto:410, reservas:3, metodo:'Pago Móvil', estado:'Pendiente'},
-  {prov:'Ecoturismo Capacho', monto:380, reservas:4, metodo:'Nequi (COP)', estado:'Pendiente'},
-];
-const PAGOS_HISTORIAL = [
-  {prov:'Tours Andinos GT', monto:1410, metodo:'Binance/USDT', fecha:'2026-05-30', ref:'TXN-88231'},
-  {prov:'Aventura Extrema Táchira', monto:980, metodo:'Zelle', fecha:'2026-05-30', ref:'TXN-88214'},
-  {prov:'Posada El Cafetal', monto:640, metodo:'Pago Móvil', fecha:'2026-05-30', ref:'TXN-88198'},
-  {prov:'Rutas del Táchira', monto:720, metodo:'Pago Móvil', fecha:'2026-05-15', ref:'TXN-87960'},
-  {prov:'Posada Buena Vista', monto:340, metodo:'Nequi (COP)', fecha:'2026-04-15', ref:'TXN-87422'},
-];
-let DISPUTAS = [
-  {id:'d1', cliente:'Andrea Contreras', proveedor:'Posada Buena Vista', tipo:'No-show', estado:'Abierta', fecha:'2026-07-02'},
-  {id:'d2', cliente:'Luis Ramírez', proveedor:'Aventura Extrema Táchira', tipo:'Reclamo de calidad', estado:'Abierta', fecha:'2026-07-01'},
-  {id:'d3', cliente:'Marianny Useche', proveedor:'Tours Andinos GT', tipo:'Otro', estado:'Abierta', fecha:'2026-06-29'},
-  {id:'d4', cliente:'Carlos Peña', proveedor:'Posada El Cafetal', tipo:'Reclamo de calidad', estado:'Resuelta', fecha:'2026-06-20', resolucion:'Reembolso al cliente'},
-  {id:'d5', cliente:'Génesis Molina', proveedor:'Sabores de la Frontera', tipo:'No-show', estado:'Resuelta', fecha:'2026-06-14', resolucion:'Liberar pago al proveedor'},
-];
-const CLIENTES = [
-  {nombre:'Andrea Contreras', email:'andrea.contreras@gmail.com', reservas:4, gasto:312, cuotas:'1 pendiente'},
-  {nombre:'Luis Ramírez', email:'luis.ramirez88@hotmail.com', reservas:7, gasto:598, cuotas:'—'},
-  {nombre:'Marianny Useche', email:'marianny.u@gmail.com', reservas:2, gasto:145, cuotas:'—'},
-  {nombre:'Carlos Peña', email:'carlospena.tach@gmail.com', reservas:9, gasto:781, cuotas:'—'},
-  {nombre:'Génesis Molina', email:'genesis.molina@outlook.com', reservas:3, gasto:220, cuotas:'—'},
-  {nombre:'Jesús Zambrano', email:'jesuszambrano@gmail.com', reservas:5, gasto:410, cuotas:'—'},
-  {nombre:'Valentina Rojas', email:'valen.rojas@gmail.com', reservas:1, gasto:60, cuotas:'1 pendiente'},
-  {nombre:'Franklin Duque', email:'fduque.andes@gmail.com', reservas:6, gasto:495, cuotas:'—'},
-  {nombre:'Yosmar Contreras', email:'yosmar.c@gmail.com', reservas:2, gasto:158, cuotas:'—'},
-  {nombre:'Diego Sánchez', email:'diego.sanchez.29@gmail.com', reservas:8, gasto:702, cuotas:'—'},
-];
-const RESERVAS = [
-  {cliente:'Andrea Contreras', proveedor:'Posada Buena Vista', item:'Posada Buena Vista — 2 noches', municipio:'Táriba', fecha:'2026-07-02', monto:96, estado:'Pendiente confirmación'},
-  {cliente:'Luis Ramírez', proveedor:'Aventura Extrema Táchira', item:'Ascenso Páramo de Tamá', municipio:'Pregonero', fecha:'2026-07-01', monto:130, estado:'Confirmada'},
-  {cliente:'Marianny Useche', proveedor:'Tours Andinos GT', item:'Recorrido Centro Histórico SC', municipio:'San Cristóbal', fecha:'2026-06-30', monto:45, estado:'Completada'},
-  {cliente:'Carlos Peña', proveedor:'Posada El Cafetal', item:'Posada El Cafetal — 3 noches', municipio:'Queniquea', fecha:'2026-06-29', monto:180, estado:'Completada'},
-  {cliente:'Génesis Molina', proveedor:'Sabores de la Frontera', item:'Ruta gastronómica fronteriza', municipio:'San Antonio del Táchira', fecha:'2026-06-28', monto:35, estado:'Completada'},
-  {cliente:'Jesús Zambrano', proveedor:'Rutas del Táchira', item:'Cascada La Machirí', municipio:'San Cristóbal', fecha:'2026-06-27', monto:60, estado:'Confirmada'},
-  {cliente:'Valentina Rojas', proveedor:'Ecoturismo Capacho', item:'Caminata ecológica Capacho', municipio:'Capacho', fecha:'2026-06-26', monto:38, estado:'Cancelada'},
-  {cliente:'Franklin Duque', proveedor:'Posada Colonial La Grita', item:'Posada Colonial — 1 noche', municipio:'La Grita', fecha:'2026-06-25', monto:52, estado:'Completada'},
-  {cliente:'Yosmar Contreras', proveedor:'Tours Andinos GT', item:'Tour nocturno San Cristóbal', municipio:'San Cristóbal', fecha:'2026-06-24', monto:40, estado:'Completada'},
-  {cliente:'Diego Sánchez', proveedor:'Aventura Extrema Táchira', item:'Rafting Río Táchira', municipio:'Pregonero', fecha:'2026-06-23', monto:95, estado:'Confirmada'},
-  {cliente:'Andrea Contreras', proveedor:'Sabores de la Frontera', item:'Cata de café andino', municipio:'San Antonio del Táchira', fecha:'2026-06-20', monto:28, estado:'Completada'},
-  {cliente:'Luis Ramírez', proveedor:'Posada El Cafetal', item:'Posada El Cafetal — 2 noches', municipio:'Queniquea', fecha:'2026-06-18', monto:120, estado:'Completada'},
-  {cliente:'Marianny Useche', proveedor:'Rutas del Táchira', item:'Trekking Páramo El Rosal', municipio:'San Cristóbal', fecha:'2026-06-15', monto:70, estado:'Completada'},
-  {cliente:'Carlos Peña', proveedor:'Posada Buena Vista', item:'Posada Buena Vista — 1 noche', municipio:'Táriba', fecha:'2026-06-10', monto:48, estado:'Cancelada'},
-  {cliente:'Génesis Molina', proveedor:'Ecoturismo Capacho', item:'Ruta del café Capacho', municipio:'Capacho', fecha:'2026-06-08', monto:32, estado:'Completada'},
-];
-const RANKING_TOP = [
-  {n:'Ascenso Páramo de Tamá', prov:'Aventura Extrema Táchira', v:82},
-  {n:'Recorrido Centro Histórico SC', prov:'Tours Andinos GT', v:74},
-  {n:'Posada El Cafetal', prov:'Posada El Cafetal', v:66},
-  {n:'Cascada La Machirí', prov:'Rutas del Táchira', v:58},
-  {n:'Ruta gastronómica fronteriza', prov:'Sabores de la Frontera', v:41},
-];
-const DEMANDA_MUNICIPIO = [
-  {m:'San Cristóbal', v:96},{m:'Pregonero', v:88},{m:'Queniquea', v:61},{m:'San Antonio del Táchira', v:47},{m:'La Grita', v:33},{m:'Capacho', v:29},{m:'Táriba', v:18},
-];
+/* Todo lo que sigue arranca vacío y se llena en cargarDatosReales() con lo que
+   hay en Supabase. Antes eran diez proveedores, quince reservas y siete pagos
+   inventados: cifras que parecían actividad real y no lo eran. */
+let PROVEEDORES = [];
+let PAGOS_PENDIENTES = [];
+let PAGOS_HISTORIAL = [];
+let DISPUTAS = [];
+let CLIENTES = [];
+let RESERVAS = [];
+let RANKING_TOP = [];
+let DEMANDA_MUNICIPIO = [];
+let COTIZACIONES = [];
 const LEGAL_TEXTOS = {
   terminos: `TÉRMINOS Y CONDICIONES — TÁCHIRA GOO!!!
 
@@ -727,7 +680,7 @@ function badgeEstadoDisputa(e){ return e==='Abierta' ? '<span class="badge b-ora
 function badgeDoc(e){ if(e==='Aprobado') return '<span class="badge b-green"><span class="dot"></span>Aprobado</span>'; if(e==='Rechazado') return '<span class="badge b-red"><span class="dot"></span>Rechazado</span>'; return '<span class="badge b-orange"><span class="dot"></span>En revisión</span>'; }
 function showToast(msg, type){ const wrap=document.getElementById('toast-wrap'); const t=document.createElement('div'); t.className='toast'+(type?' '+type:''); t.textContent=msg; wrap.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2600); }
 function updateNavCounts(){ document.getElementById('nav-count-proveedores').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('nav-count-pagos').textContent = PAGOS_PENDIENTES.length; document.getElementById('nav-count-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-verif').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('ticker-pagos').textContent = money(PAGOS_PENDIENTES.reduce((a,b)=>a+b.monto,0)); }
-const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', vehiculos:'Vehículos · cola de revisión', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
+const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', vehiculos:'Vehículos · cola de revisión', cotizaciones:'Cotizaciones de viaje', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
 document.querySelectorAll('.nav-item').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); const page = btn.dataset.page; document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-'+page).classList.add('active'); document.getElementById('page-title').textContent = PAGE_TITLES[page]; document.getElementById('sidebar').classList.remove('open'); }); });
 function renderWeeklyChart(){ const data=[42,38,55,49,61,58,66,72]; const max=Math.max(...data); document.getElementById('weekly-chart').innerHTML = data.map((v,i)=>`<div class="bar-col"><div class="bar-val">${v}</div><div class="bar" style="height:${(v/max*100)}%"></div><div class="bar-label">S${i+1}</div></div>`).join(''); }
 function renderAlerts(){ const alerts=[ {ic:'warn', t1:'2 proveedores esperan verificación de documentos', t2:'Páramo Adventures, Posada Los Frailejones', link:'proveedores'}, {ic:'danger', t1:'3 disputas sin resolver', t2:'La más antigua lleva 4 días abierta', link:'disputas'}, {ic:'info', t1:'5 liquidaciones listas para pago', t2:'Corte quincenal el 18 de julio', link:'pagos'}, {ic:'warn', t1:'Aventura Extrema Táchira: pago próximo a vencer', t2:'Vence en 2 días — $1.240', link:'pagos'}, ]; document.getElementById('alerts-feed').innerHTML = alerts.map(a=>`<div class="alert-item"><div class="alert-ic ${a.ic}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="alert-txt"><div class="t1">${a.t1}</div><div class="t2">${a.t2}</div></div><button class="alert-link" onclick="goTo('${a.link}')">Ver</button></div>`).join(''); }
@@ -755,11 +708,12 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(btn=>{ btn.addEventListe
 document.querySelectorAll('.tab-btn[data-legaltab]').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.tab-btn[data-legaltab]').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.getElementById('legal-editor').value = LEGAL_TEXTOS[btn.dataset.legaltab]; }); });
 function renderReportes(){ const maxR = Math.max(...RANKING_TOP.map(r=>r.v)); document.getElementById('ranking-top').innerHTML = RANKING_TOP.map(r=>`<div class="hbar-row"><div class="name">${r.n}</div><div class="hbar-track"><div class="hbar-fill" style="width:${r.v/maxR*100}%"></div></div><div class="hbar-num tabular">${r.v} res.</div></div>`).join(''); const maxD = Math.max(...DEMANDA_MUNICIPIO.map(d=>d.v)); document.getElementById('demanda-municipio').innerHTML = DEMANDA_MUNICIPIO.map(d=>`<div class="hbar-row"><div class="name">${d.m}</div><div class="hbar-track"><div class="hbar-fill orange" style="width:${d.v/maxD*100}%"></div></div><div class="hbar-num tabular">${d.v} pts.</div></div>`).join(''); const gmv=[28400,31200,35900,40100,44700,48320]; const meses=['Feb','Mar','Abr','May','Jun','Jul']; const maxG=Math.max(...gmv); document.getElementById('gmv-chart').innerHTML = gmv.map((v,i)=>`<div class="bar-col"><div class="bar-val">$${(v/1000).toFixed(1)}k</div><div class="bar" style="height:${v/maxG*100}%"></div><div class="bar-label">${meses[i]}</div></div>`).join(''); }
 function fillMunicipioSelects(){ ['filtro-prov-municipio','filtro-res-municipio'].forEach(id=>{ const sel=document.getElementById(id); MUNICIPIOS.forEach(m=>{ const o=document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o); }); }); }
+['filtro-cot-tipo','filtro-cot-estado'].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener('change', renderCotizaciones); });
 ['filtro-prov-estado','filtro-prov-municipio','buscar-prov'].forEach(id=>document.getElementById(id).addEventListener('input', renderProveedores));
 document.getElementById('filtro-disp-estado').addEventListener('change', renderDisputas);
 document.getElementById('buscar-cliente').addEventListener('input', renderClientes);
 ['filtro-res-estado','filtro-res-municipio','filtro-res-desde','filtro-res-hasta'].forEach(id=>document.getElementById(id).addEventListener('input', renderReservas));
-fillMunicipioSelects(); updateNavCounts(); renderWeeklyChart(); renderAlerts(); renderProveedores(); renderPagos(); renderDisputas(); renderClientes(); renderReservas(); renderConfig(); renderReportes();
+fillMunicipioSelects(); updateNavCounts(); renderWeeklyChart(); renderAlerts(); renderProveedores(); renderPagos(); renderDisputas(); renderClientes(); renderReservas(); renderConfig(); renderReportes(); renderCotizaciones();
 const AUTH = { MAX_ATTEMPTS: 3, LOCKOUT_SECONDS: 300, IDLE_LIMIT_MS: 5 * 60 * 1000, attempts: 0, pendingEmail: '', lockoutInterval: null, idleTimer: null, authenticated: false, };
 function showStep(id){ document.querySelectorAll('.login-step').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function loginError(msg){ const el = document.getElementById('login-error'); el.textContent = msg; el.classList.add('show'); }
@@ -856,6 +810,181 @@ async function setVerification(providerId, status){
           : status === 'rejected' ? 'Proveedor rechazado'
           : 'Micrositio revocado', status === 'rejected' ? 'warn' : 'success');
   await loadRealProviders();
+}
+
+/* ==========================================================================
+   CARGA DE DATOS REALES
+   Un panel de administración que muestra cifras inventadas es peor que uno
+   vacío: invita a tomar decisiones sobre actividad que no existe.
+   ========================================================================== */
+const ESTADO_PROVEEDOR = { pending:'Pendiente verificación', in_review:'Pendiente verificación', approved:'Activo', rejected:'Suspendido' };
+const ESTADO_RESERVA = { pending:'Pendiente confirmación', confirmed:'Confirmada', completed:'Completada', cancelled:'Cancelada', disputed:'En disputa' };
+const CAT_LISTADO = { tour:'Tour', alojamiento:'Posada', actividad:'Actividad' };
+
+function soloFecha(iso){ return iso ? String(iso).slice(0,10) : ''; }
+
+const COT_TIPO_LABEL = { vuelo:'Vuelo', tour_nacional:'Tour nacional', tour_internacional:'Tour internacional' };
+const COT_ESTADO_LABEL = { nueva:'Nueva', contactada:'Contactada', cotizada:'Cotizada', cerrada:'Cerrada', descartada:'Descartada' };
+const COT_ESTADO_BADGE = { nueva:'b-orange', contactada:'b-blue', cotizada:'b-blue', cerrada:'b-green', descartada:'b-gray' };
+
+function renderCotizaciones(){
+  const cuerpo = document.getElementById('tbl-cotizaciones');
+  if(!cuerpo) return;
+  const tipo = (document.getElementById('filtro-cot-tipo')||{}).value || '';
+  const estado = (document.getElementById('filtro-cot-estado')||{}).value || '';
+  const filas = COTIZACIONES.filter(c => (!tipo || c.tipo === tipo) && (!estado || c.status === estado));
+
+  const nuevas = COTIZACIONES.filter(c => c.status === 'nueva').length;
+  const cnt = document.getElementById('nav-count-cotizaciones');
+  if(cnt) cnt.textContent = nuevas;
+
+  if(!filas.length){
+    cuerpo.innerHTML = '<tr><td colspan="8" class="empty-note">' +
+      (COTIZACIONES.length ? 'Ninguna cotización coincide con los filtros.'
+                           : 'Todavía no hay solicitudes de cotización.') + '</td></tr>';
+    return;
+  }
+  cuerpo.innerHTML = filas.map(c => {
+    const trayecto = c.origen ? `${c.origen} → ${c.destino}` : c.destino;
+    const fechas = c.fecha_vuelta ? `${c.fecha_ida} → ${c.fecha_vuelta}` : c.fecha_ida;
+    /* El teléfono es el dato por el que existe la cotización: se pone a un clic. */
+    const wa = String(c.telefono || '').replace(/[^0-9]/g, '');
+    return `<tr>
+      <td class="cell-strong">${c.ref}</td>
+      <td>${COT_TIPO_LABEL[c.tipo] || c.tipo}</td>
+      <td class="cell-strong">${c.nombre}<div class="cell-sub">${c.telefono}${c.email ? ' · ' + c.email : ''}</div></td>
+      <td>${trayecto}</td>
+      <td class="cell-sub">${fechas}</td>
+      <td class="tabular">${c.pasajeros}</td>
+      <td><span class="badge ${COT_ESTADO_BADGE[c.status]||'b-gray'}"><span class="dot"></span>${COT_ESTADO_LABEL[c.status]||c.status}</span></td>
+      <td>
+        ${wa ? `<a class="link-btn" href="https://wa.me/${wa}" target="_blank" rel="noopener">WhatsApp →</a>` : ''}
+        <select class="select" style="margin-top:6px" onchange="cambiarEstadoCotizacion('${c.id}', this.value)">
+          ${Object.keys(COT_ESTADO_LABEL).map(k => `<option value="${k}" ${k===c.status?'selected':''}>${COT_ESTADO_LABEL[k]}</option>`).join('')}
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function cambiarEstadoCotizacion(id, estado){
+  const { error } = await sb.from('travel_quotes').update({ status: estado }).eq('id', id);
+  if(error){ showToast('Error: ' + error.message, 'warn'); return; }
+  const c = COTIZACIONES.find(x => x.id === id);
+  if(c) c.status = estado;
+  renderCotizaciones();
+  showToast('Cotización marcada como ' + (COT_ESTADO_LABEL[estado]||estado).toLowerCase(), 'success');
+}
+
+async function cargarDatosReales(){
+  const [prov, list, book, prof, pay, disp, rev, cot] = await Promise.all([
+    sb.from('providers').select('*'),
+    sb.from('listings').select('id, title, provider_id, municipio, category, status'),
+    sb.from('bookings').select('*, listings(title, municipio), providers(business_name), profiles(full_name)'),
+    sb.from('profiles').select('id, full_name, role'),
+    sb.from('payouts').select('*, providers(business_name)'),
+    sb.from('disputes').select('*, bookings(ref), profiles(full_name)'),
+    sb.from('reviews').select('listing_id, rating'),
+    sb.from('travel_quotes').select('*').order('created_at', { ascending:false })
+  ]);
+
+  const listados = list.data || [];
+  const reservas = book.data || [];
+  const resenas  = rev.data  || [];
+
+  /* --- Proveedores --- */
+  const califPorListado = {};
+  resenas.forEach(r => {
+    const a = califPorListado[r.listing_id] || (califPorListado[r.listing_id] = { s:0, n:0 });
+    a.s += r.rating; a.n += 1;
+  });
+  PROVEEDORES = (prov.data || []).map(p => {
+    const suyos = listados.filter(l => l.provider_id === p.id);
+    const notas = suyos.map(l => califPorListado[l.id]).filter(Boolean);
+    const n = notas.reduce((t,a) => t + a.n, 0);
+    const s = notas.reduce((t,a) => t + a.s, 0);
+    return {
+      id: p.id,
+      nombre: p.business_name || '—',
+      municipio: p.municipio || '—',
+      categoria: CAT_LISTADO[(suyos[0]||{}).category] || '—',
+      estado: ESTADO_PROVEEDOR[p.verification_status] || 'Pendiente verificación',
+      rating: n ? Math.round((s/n)*10)/10 : 0,
+      registro: soloFecha(p.created_at),
+      listados: suyos.filter(l => l.status === 'published').length,
+      docs: []   // la verificación documental del proveedor aún no se carga en la plataforma
+    };
+  });
+
+  /* --- Reservas --- */
+  RESERVAS = reservas.map(b => ({
+    cliente: (b.profiles && b.profiles.full_name) || 'Viajero',
+    proveedor: (b.providers && b.providers.business_name) || '—',
+    item: (b.listings && b.listings.title) || '—',
+    municipio: (b.listings && b.listings.municipio) || '—',
+    fecha: soloFecha(b.booking_date),
+    monto: Number(b.amount) || 0,
+    estado: ESTADO_RESERVA[b.status] || b.status
+  }));
+
+  /* --- Clientes, derivados de sus reservas --- */
+  const porCliente = {};
+  reservas.forEach(b => {
+    const nombre = (b.profiles && b.profiles.full_name) || 'Viajero';
+    const c = porCliente[b.customer_id] || (porCliente[b.customer_id] = { nombre, email:'—', reservas:0, gasto:0, pendientes:0 });
+    c.reservas += 1;
+    if (b.status !== 'cancelled') c.gasto += Number(b.amount) || 0;
+    if (b.status === 'pending') c.pendientes += 1;
+  });
+  CLIENTES = Object.values(porCliente).map(c => ({
+    nombre: c.nombre, email: c.email, reservas: c.reservas, gasto: c.gasto,
+    cuotas: c.pendientes ? `${c.pendientes} pendiente${c.pendientes>1?'s':''}` : '—'
+  }));
+
+  /* --- Pagos --- */
+  const pagos = pay.data || [];
+  PAGOS_PENDIENTES = pagos.filter(x => x.status === 'pending').map(x => ({
+    prov: (x.providers && x.providers.business_name) || '—',
+    monto: Number(x.amount) || 0,
+    reservas: x.bookings_count || 0,
+    metodo: '—',
+    estado: 'Pendiente'
+  }));
+  PAGOS_HISTORIAL = pagos.filter(x => x.status === 'paid').map(x => ({
+    prov: (x.providers && x.providers.business_name) || '—',
+    monto: Number(x.amount) || 0,
+    metodo: '—',
+    fecha: soloFecha(x.period_end),
+    ref: x.payment_ref || '—'
+  }));
+
+  /* --- Disputas --- */
+  DISPUTAS = (disp.data || []).map(d => ({
+    id: d.id,
+    cliente: (d.profiles && d.profiles.full_name) || 'Viajero',
+    proveedor: '—',
+    tipo: d.reason || 'Otro',
+    estado: d.status === 'open' ? 'Abierta' : (d.status === 'resolved' ? 'Resuelta' : 'Rechazada'),
+    fecha: soloFecha(d.created_at)
+  }));
+
+  /* --- Reportes, calculados a partir de las reservas reales --- */
+  const ventasPorItem = {}, demandaPorMuni = {};
+  reservas.filter(b => b.status !== 'cancelled').forEach(b => {
+    const t = (b.listings && b.listings.title) || '—';
+    const m = (b.listings && b.listings.municipio) || '—';
+    ventasPorItem[t] = ventasPorItem[t] || { n:t, prov:(b.providers&&b.providers.business_name)||'—', v:0 };
+    ventasPorItem[t].v += 1;
+    demandaPorMuni[m] = (demandaPorMuni[m] || 0) + 1;
+  });
+  RANKING_TOP = Object.values(ventasPorItem).sort((a,b) => b.v - a.v).slice(0,5);
+  DEMANDA_MUNICIPIO = Object.entries(demandaPorMuni).map(([m,v]) => ({ m, v })).sort((a,b) => b.v - a.v);
+
+  /* --- Cotizaciones de viaje --- */
+  COTIZACIONES = cot.data || [];
+
+  const fallos = [prov, list, book, prof, pay, disp, rev, cot].filter(r => r.error);
+  if (fallos.length) console.warn('Algunas consultas fallaron:', fallos.map(f => f.error.message));
 }
 
 const VEH_REV_LABEL = { pending:'Pendiente', in_review:'En revisión', approved:'Aprobada', rejected:'Rechazada' };
@@ -976,6 +1105,11 @@ async function revisarVehiculo(id, tipo, estado){
 
 async function loadRealData(){
   loadVehiculos();
+  await cargarDatosReales();
+  /* Las tablas se pintaron al arrancar con los arrays vacíos; ahora que hay
+     datos reales hay que volver a pintarlas. */
+  updateNavCounts(); renderProveedores(); renderPagos(); renderDisputas();
+  renderClientes(); renderReservas(); renderReportes(); renderCotizaciones();
   loadRealProviders();
   const { data: bookings, error } = await sb.from('bookings')
     .select('*, listings(title), providers(business_name), profiles(full_name)')
