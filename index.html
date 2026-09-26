@@ -773,7 +773,7 @@ const VERIF_BADGE = { pending: 'b-orange', in_review: 'b-blue', approved: 'b-gre
 async function loadRealProviders(){
   const body = document.getElementById('real-proveedores-body');
   const { data: providers, error } = await sb.from('providers')
-    .select('*, listings(id)')
+    .select('*, listings(id, title, description, base_price, cover_image_url, status)')
     .order('created_at', { ascending: false });
   if(error){
     body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Error cargando proveedores: '+error.message+'</td></tr>';
@@ -783,6 +783,7 @@ async function loadRealProviders(){
     body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Todavía no hay proveedores registrados.</td></tr>';
     return;
   }
+  window.__PROVEEDORES_RAW = providers;
   body.innerHTML = providers.map(p => {
     const st = p.verification_status || 'pending';
     const acciones = st === 'approved'
@@ -790,17 +791,43 @@ async function loadRealProviders(){
       : `<button class="link-btn" onclick="setVerification('${p.id}','approved')">Aprobar</button>
          <button class="link-btn" style="color:var(--red,#C0122D)" onclick="setVerification('${p.id}','rejected')">Rechazar</button>`;
     return `<tr>
-      <td class="cell-strong">${p.business_name || '—'}<div class="cell-sub">PRV-${p.id.slice(0,8).toUpperCase()}</div></td>
+      <td class="cell-strong">${p.business_name || '—'}<div class="cell-sub">${p.slug ? '/' + p.slug : 'PRV-' + p.id.slice(0,8).toUpperCase()}</div></td>
       <td>${p.municipio || '—'}</td>
       <td class="tabular">${(p.listings || []).length}</td>
       <td class="cell-sub">${p.created_at ? new Date(p.created_at).toLocaleDateString('es-VE') : '—'}</td>
       <td><span class="badge ${VERIF_BADGE[st] || 'b-gray'}"><span class="dot"></span>${VERIF_LABEL[st] || st}</span></td>
-      <td>${acciones}</td>
+      <td>${acciones}${st !== 'approved' ? (function(){
+        const f = requisitosMicrositio(p);
+        return f.length ? `<div class="cell-sub" style="margin-top:4px">Falta: ${f.join(', ')}</div>` : '<div class="cell-sub" style="margin-top:4px;color:var(--green,#12805C)">Listo para publicar</div>';
+      })() : ''}</td>
     </tr>`;
   }).join('');
 }
 
+/* Un micrositio a medio llenar se ve abandonado bajo la marca de Táchira GOO!!!.
+   Antes de publicarlo se exige lo mínimo para que la página tenga sentido. */
+function requisitosMicrositio(p){
+  const falta = [];
+  if(!p.logo_url) falta.push('logo');
+  if(!p.cover_image_url) falta.push('foto de portada');
+  const completos = (p.listings || []).filter(l =>
+    l.status === 'published' && l.title && l.description &&
+    l.base_price != null && l.cover_image_url);
+  if(completos.length === 0) falta.push('al menos un producto publicado con foto, descripción y precio');
+  return falta;
+}
+
 async function setVerification(providerId, status){
+  if(status === 'approved'){
+    const prov = (window.__PROVEEDORES_RAW || []).find(x => x.id === providerId);
+    if(prov){
+      const falta = requisitosMicrositio(prov);
+      if(falta.length){
+        showToast('No se puede publicar: falta ' + falta.join(', '), 'warn');
+        return;
+      }
+    }
+  }
   const { error } = await sb.from('providers').update({
     verification_status: status,
     verified: status === 'approved'
