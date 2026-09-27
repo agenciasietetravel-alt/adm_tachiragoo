@@ -478,6 +478,11 @@ tbody tr:last-child td{ border-bottom:none; }
         Vehículos
         <span class="badge-count" id="nav-count-vehiculos">0</span>
       </button>
+      <button class="nav-item" data-page="aprobaciones">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"></path><circle cx="12" cy="12" r="9"></circle></svg>
+        Aprobar pagos
+        <span class="badge-count" id="nav-count-aprobaciones">0</span>
+      </button>
       <button class="nav-item" data-page="cotizaciones">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         Cotizaciones
@@ -578,6 +583,12 @@ tbody tr:last-child td{ border-bottom:none; }
           <div class="table-wrap"><table><thead><tr><th>Vehículo</th><th>Dueño</th><th>Municipio</th><th>Precio/día</th><th>Revisión legal</th><th>Revisión física</th><th>Visible</th></tr></thead><tbody id="vehiculos-body"><tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:20px">Cargando...</td></tr></tbody></table></div>
         </div>
         <div id="vehiculo-detalle"></div>
+      </section>
+      <section class="page" id="page-aprobaciones">
+        <div class="panel">
+          <div class="panel-head"><h3>Reservas esperando tu aprobación</h3><span class="hint">El huésped ya transfirió y la habitación está apartada</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Ref.</th><th>Huésped</th><th>Alojamiento</th><th>Estancia</th><th>Pagó</th><th>Método</th><th>Comprobante</th><th>Decisión</th></tr></thead><tbody id="tbl-aprobaciones"><tr><td colspan="8" style="text-align:center;color:var(--gray-400);padding:20px">Cargando...</td></tr></tbody></table></div>
+        </div>
       </section>
       <section class="page" id="page-cotizaciones">
         <div class="toolbar">
@@ -680,7 +691,7 @@ function badgeEstadoDisputa(e){ return e==='Abierta' ? '<span class="badge b-ora
 function badgeDoc(e){ if(e==='Aprobado') return '<span class="badge b-green"><span class="dot"></span>Aprobado</span>'; if(e==='Rechazado') return '<span class="badge b-red"><span class="dot"></span>Rechazado</span>'; return '<span class="badge b-orange"><span class="dot"></span>En revisión</span>'; }
 function showToast(msg, type){ const wrap=document.getElementById('toast-wrap'); const t=document.createElement('div'); t.className='toast'+(type?' '+type:''); t.textContent=msg; wrap.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2600); }
 function updateNavCounts(){ document.getElementById('nav-count-proveedores').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('nav-count-pagos').textContent = PAGOS_PENDIENTES.length; document.getElementById('nav-count-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-verif').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('ticker-pagos').textContent = money(PAGOS_PENDIENTES.reduce((a,b)=>a+b.monto,0)); }
-const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', vehiculos:'Vehículos · cola de revisión', cotizaciones:'Cotizaciones de viaje', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
+const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', vehiculos:'Vehículos · cola de revisión', cotizaciones:'Cotizaciones de viaje', aprobaciones:'Aprobar pagos de reserva', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
 document.querySelectorAll('.nav-item').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); const page = btn.dataset.page; document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-'+page).classList.add('active'); document.getElementById('page-title').textContent = PAGE_TITLES[page]; document.getElementById('sidebar').classList.remove('open'); }); });
 function renderWeeklyChart(){ const data=[42,38,55,49,61,58,66,72]; const max=Math.max(...data); document.getElementById('weekly-chart').innerHTML = data.map((v,i)=>`<div class="bar-col"><div class="bar-val">${v}</div><div class="bar" style="height:${(v/max*100)}%"></div><div class="bar-label">S${i+1}</div></div>`).join(''); }
 function renderAlerts(){ const alerts=[ {ic:'warn', t1:'2 proveedores esperan verificación de documentos', t2:'Páramo Adventures, Posada Los Frailejones', link:'proveedores'}, {ic:'danger', t1:'3 disputas sin resolver', t2:'La más antigua lleva 4 días abierta', link:'disputas'}, , ]; document.getElementById('alerts-feed').innerHTML = alerts.map(a=>`<div class="alert-item"><div class="alert-ic ${a.ic}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="alert-txt"><div class="t1">${a.t1}</div><div class="t2">${a.t2}</div></div><button class="alert-link" onclick="goTo('${a.link}')">Ver</button></div>`).join(''); }
@@ -910,6 +921,77 @@ async function cambiarEstadoCotizacion(id, estado){
   if(c) c.status = estado;
   renderCotizaciones();
   showToast('Cotización marcada como ' + (COT_ESTADO_LABEL[estado]||estado).toLowerCase(), 'success');
+}
+
+const APROB_ESTADO = { pendiente_aprobacion:['Pendiente','b-orange'], confirmada:['Confirmada','b-green'],
+  rechazada:['Rechazada','b-red'], cancelada:['Cancelada','b-gray'], completada:['Completada','b-green'], no_show:['No se presentó','b-red'] };
+let APROBACIONES = [];
+
+async function cargarAprobaciones(){
+  const cuerpo = document.getElementById('tbl-aprobaciones');
+  if(!cuerpo) return;
+  const { data, error } = await sb.from('room_bookings')
+    .select('*, room_types(nombre), providers(business_name)')
+    .order('created_at', { ascending: true });
+  if(error){
+    cuerpo.innerHTML = '<tr><td colspan="8" class="empty-note">No se pudieron cargar: '+error.message+'</td></tr>';
+    return;
+  }
+  APROBACIONES = data || [];
+  const pendientes = APROBACIONES.filter(b => b.status === 'pendiente_aprobacion');
+  const cnt = document.getElementById('nav-count-aprobaciones');
+  if(cnt) cnt.textContent = pendientes.length;
+
+  if(!APROBACIONES.length){
+    cuerpo.innerHTML = '<tr><td colspan="8" class="empty-note">Todavía no hay reservas de alojamiento.</td></tr>';
+    return;
+  }
+  const ahora = Date.now();
+  cuerpo.innerHTML = APROBACIONES.map(b => {
+    const e = APROB_ESTADO[b.status] || [b.status,'b-gray'];
+    const horas = Math.floor((ahora - new Date(b.created_at).getTime()) / 3600000);
+    /* Una solicitud sin revisar mantiene la habitación bloqueada: si lleva más
+       de un día esperando, debe saltar a la vista. */
+    const tarde = b.status === 'pendiente_aprobacion' && horas >= 24;
+    const decision = b.status === 'pendiente_aprobacion'
+      ? `<button class="link-btn" onclick="decidirReserva('${b.id}','confirmada')">Aprobar</button>
+         <button class="link-btn" style="color:#C0122D" onclick="decidirReserva('${b.id}','rechazada')">Rechazar</button>`
+      : `<span class="cell-sub">${b.revisado_en ? new Date(b.revisado_en).toLocaleDateString('es-VE') : '—'}</span>`;
+    return `<tr${tarde ? ' style="background:#FFF7ED"' : ''}>
+      <td class="cell-strong">${b.ref}${tarde ? `<div class="cell-sub" style="color:#C0122D">Esperando ${horas}h</div>` : ''}</td>
+      <td class="cell-strong">${b.guest_nombre || 'Huésped'}<div class="cell-sub">${b.guest_telefono || ''}</div></td>
+      <td>${(b.providers&&b.providers.business_name)||'—'}<div class="cell-sub">${(b.room_types&&b.room_types.nombre)||''}</div></td>
+      <td class="cell-sub">${b.check_in} → ${b.check_out}<div>${b.noches}n · ${b.habitaciones} hab.</div></td>
+      <td class="tabular cell-strong">$${b.monto_pagado}<div class="cell-sub">de $${b.monto_total}</div></td>
+      <td class="cell-sub">${b.comprobante_metodo||'—'}<div>${b.comprobante_referencia||''}</div></td>
+      <td>${b.comprobante_url ? `<button class="link-btn" onclick="verComprobante('${b.comprobante_url}')">Ver →</button>` : '<span class="cell-sub">Sin comprobante</span>'}</td>
+      <td><span class="badge ${e[1]}"><span class="dot"></span>${e[0]}</span><div style="margin-top:6px">${decision}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function verComprobante(ruta){
+  /* El almacén de comprobantes es privado: hay que firmar el enlace. */
+  const { data, error } = await sb.storage.from('comprobantes').createSignedUrl(ruta, 300);
+  if(error || !data){ showToast('No se pudo abrir el comprobante', 'warn'); return; }
+  window.open(data.signedUrl, '_blank', 'noopener');
+}
+
+async function decidirReserva(id, decision){
+  const b = APROBACIONES.find(x => x.id === id);
+  let motivo = null;
+  if(decision === 'rechazada'){
+    motivo = prompt('¿Por qué se rechaza? El huésped lo verá.\n(Ej: el comprobante no corresponde al monto)');
+    if(motivo === null) return;
+  }
+  const { error } = await sb.from('room_bookings')
+    .update({ status: decision, motivo_rechazo: motivo, revisado_en: new Date().toISOString() })
+    .eq('id', id);
+  if(error){ showToast('Error: ' + error.message, 'warn'); return; }
+  await cargarAprobaciones();
+  showToast(decision === 'confirmada'
+    ? 'Reserva confirmada — el alojamiento ya la ve en su recepción'
+    : 'Reserva rechazada — la habitación volvió a quedar libre', decision === 'confirmada' ? 'success' : 'warn');
 }
 
 async function cargarDatosReales(){
@@ -1146,6 +1228,7 @@ async function loadRealData(){
      datos reales hay que volver a pintarlas. */
   updateNavCounts(); renderProveedores(); renderPagos(); renderDisputas();
   renderClientes(); renderReservas(); renderReportes(); renderCotizaciones();
+  cargarAprobaciones();
   loadRealProviders();
   const { data: bookings, error } = await sb.from('bookings')
     .select('*, listings(title), providers(business_name), profiles(full_name)')
