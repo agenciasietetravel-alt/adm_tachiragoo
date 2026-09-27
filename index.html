@@ -483,6 +483,12 @@ tbody tr:last-child td{ border-bottom:none; }
         Aprobar pagos
         <span class="badge-count" id="nav-count-aprobaciones">0</span>
       </button>
+      <button class="nav-item" data-page="solicitudes">
+        <span class="ic">✉</span> Solicitudes <span class="badge-count" id="nav-count-solicitudes">0</span>
+      </button>
+      <button class="nav-item" data-page="tasas">
+        <span class="ic">$</span> Tasas de cambio
+      </button>
       <button class="nav-item" data-page="cotizaciones">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         Cotizaciones
@@ -586,8 +592,23 @@ tbody tr:last-child td{ border-bottom:none; }
       </section>
       <section class="page" id="page-aprobaciones">
         <div class="panel">
-          <div class="panel-head"><h3>Reservas esperando tu aprobación</h3><span class="hint">El huésped ya transfirió y la habitación está apartada</span></div>
-          <div class="table-wrap"><table><thead><tr><th>Ref.</th><th>Huésped</th><th>Alojamiento</th><th>Estancia</th><th>Pagó</th><th>Método</th><th>Comprobante</th><th>Decisión</th></tr></thead><tbody id="tbl-aprobaciones"><tr><td colspan="8" style="text-align:center;color:var(--gray-400);padding:20px">Cargando...</td></tr></tbody></table></div>
+          <div class="panel-head"><h3>Reservas esperando tu aprobación</h3><span class="hint">Alojamiento, actividades y vehículos: el viajero ya transfirió y el cupo está apartado</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Código</th><th>Viajero</th><th>Negocio</th><th>Detalle</th><th>Pagó</th><th>Método</th><th>Comprobante</th><th>Decisión</th></tr></thead><tbody id="tbl-aprobaciones"><tr><td colspan="8" style="text-align:center;color:var(--gray-400);padding:20px">Cargando...</td></tr></tbody></table></div>
+        </div>
+      </section>
+      <section class="page" id="page-solicitudes">
+        <div class="panel">
+          <div class="panel-head"><h3>Solicitudes de los viajeros</h3><span class="hint">Reembolsos, cambios de fecha y correcciones de datos</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Código</th><th>Tipo</th><th>Detalle</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="tbl-solicitudes"><tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Cargando...</td></tr></tbody></table></div>
+        </div>
+      </section>
+      <section class="page" id="page-tasas">
+        <div class="panel">
+          <div class="panel-head"><h3>Tasas de cambio</h3><span class="hint">Se usan para mostrar precios en pesos y bolívares</span></div>
+          <div class="panel-body">
+            <p class="hint" style="margin-bottom:12px">Cada reserva guarda la tasa con la que se hizo, así que cambiarla aquí no altera los vouchers ya emitidos — solo los precios que ve quien entra a partir de ahora.</p>
+            <div id="tasas-form"></div>
+          </div>
         </div>
       </section>
       <section class="page" id="page-cotizaciones">
@@ -691,7 +712,7 @@ function badgeEstadoDisputa(e){ return e==='Abierta' ? '<span class="badge b-ora
 function badgeDoc(e){ if(e==='Aprobado') return '<span class="badge b-green"><span class="dot"></span>Aprobado</span>'; if(e==='Rechazado') return '<span class="badge b-red"><span class="dot"></span>Rechazado</span>'; return '<span class="badge b-orange"><span class="dot"></span>En revisión</span>'; }
 function showToast(msg, type){ const wrap=document.getElementById('toast-wrap'); const t=document.createElement('div'); t.className='toast'+(type?' '+type:''); t.textContent=msg; wrap.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2600); }
 function updateNavCounts(){ document.getElementById('nav-count-proveedores').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('nav-count-pagos').textContent = PAGOS_PENDIENTES.length; document.getElementById('nav-count-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-verif').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('ticker-pagos').textContent = money(PAGOS_PENDIENTES.reduce((a,b)=>a+b.monto,0)); }
-const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', vehiculos:'Vehículos · cola de revisión', cotizaciones:'Cotizaciones de viaje', aprobaciones:'Aprobar pagos de reserva', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
+const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', vehiculos:'Vehículos · cola de revisión', cotizaciones:'Cotizaciones de viaje', aprobaciones:'Aprobar pagos de reserva', solicitudes:'Solicitudes de los viajeros', tasas:'Tasas de cambio', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
 document.querySelectorAll('.nav-item').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); const page = btn.dataset.page; document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-'+page).classList.add('active'); document.getElementById('page-title').textContent = PAGE_TITLES[page]; document.getElementById('sidebar').classList.remove('open'); }); });
 function renderWeeklyChart(){ const data=[42,38,55,49,61,58,66,72]; const max=Math.max(...data); document.getElementById('weekly-chart').innerHTML = data.map((v,i)=>`<div class="bar-col"><div class="bar-val">${v}</div><div class="bar" style="height:${(v/max*100)}%"></div><div class="bar-label">S${i+1}</div></div>`).join(''); }
 function renderAlerts(){ const alerts=[ {ic:'warn', t1:'2 proveedores esperan verificación de documentos', t2:'Páramo Adventures, Posada Los Frailejones', link:'proveedores'}, {ic:'danger', t1:'3 disputas sin resolver', t2:'La más antigua lleva 4 días abierta', link:'disputas'}, , ]; document.getElementById('alerts-feed').innerHTML = alerts.map(a=>`<div class="alert-item"><div class="alert-ic ${a.ic}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="alert-txt"><div class="t1">${a.t1}</div><div class="t2">${a.t2}</div></div><button class="alert-link" onclick="goTo('${a.link}')">Ver</button></div>`).join(''); }
@@ -923,48 +944,89 @@ async function cambiarEstadoCotizacion(id, estado){
   showToast('Cotización marcada como ' + (COT_ESTADO_LABEL[estado]||estado).toLowerCase(), 'success');
 }
 
+/* Los nombres y notas los escribe gente de fuera; van a HTML, así que se
+   escapan antes de pintarlos. */
+function esc(v){
+  return String(v == null ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 const APROB_ESTADO = { pendiente_aprobacion:['Pendiente','b-orange'], confirmada:['Confirmada','b-green'],
   rechazada:['Rechazada','b-red'], cancelada:['Cancelada','b-gray'], completada:['Completada','b-green'], no_show:['No se presentó','b-red'] };
 let APROBACIONES = [];
 
+/* Las tres clases de reserva se aprueban igual: el viajero transfirió, subió
+   su comprobante y el cupo quedó bloqueado. Tenerlas en tres pantallas
+   distintas sería tres sitios donde olvidar una. */
 async function cargarAprobaciones(){
   const cuerpo = document.getElementById('tbl-aprobaciones');
   if(!cuerpo) return;
-  const { data, error } = await sb.from('room_bookings')
-    .select('*, room_types(nombre), providers(business_name)')
-    .order('created_at', { ascending: true });
-  if(error){
-    cuerpo.innerHTML = '<tr><td colspan="8" class="empty-note">No se pudieron cargar: '+error.message+'</td></tr>';
+
+  const [hab, tours, vehs] = await Promise.all([
+    sb.from('room_bookings').select('*, room_types(nombre), providers(business_name)'),
+    sb.from('bookings').select('*, listings(title), providers(business_name)'),
+    sb.from('vehicle_bookings').select('*, vehicles(title, brand, model)')
+  ]);
+
+  const err = hab.error || tours.error || vehs.error;
+  if(err){
+    cuerpo.innerHTML = '<tr><td colspan="8" class="empty-note">No se pudieron cargar: '+err.message+'</td></tr>';
     return;
   }
-  APROBACIONES = data || [];
+
+  const normal = (fila, tabla, etiqueta, negocio, detalle, total) => ({
+    tabla, etiqueta, id: fila.id,
+    codigo: fila.codigo || fila.ref,
+    cliente: fila.guest_nombre || 'Viajero',
+    contacto: [fila.guest_telefono, fila.guest_email].filter(Boolean).join(' · '),
+    negocio, detalle,
+    pagado: Number(fila.monto_pagado || 0), total: Number(total || 0),
+    metodo: fila.comprobante_metodo, referencia: fila.comprobante_referencia,
+    comprobante: fila.comprobante_url,
+    status: fila.status, created_at: fila.created_at, revisado_en: fila.revisado_en
+  });
+
+  APROBACIONES = [].concat(
+    (hab.data || []).map(b => normal(b, 'room_bookings', 'Alojamiento',
+      (b.providers && b.providers.business_name) || '—',
+      `${b.check_in} → ${b.check_out} · ${b.noches}n · ${b.habitaciones} hab.`, b.monto_total)),
+    (tours.data || []).map(b => normal(b, 'bookings', 'Actividad',
+      (b.providers && b.providers.business_name) || '—',
+      `${b.booking_date} · ${b.personas || 1} pax · ${(b.listings && b.listings.title) || ''}`, b.amount)),
+    (vehs.data || []).map(b => normal(b, 'vehicle_bookings', 'Vehículo',
+      b.vehicles ? [b.vehicles.brand, b.vehicles.model].filter(Boolean).join(' ') || b.vehicles.title : '—',
+      `${b.start_date} → ${b.end_date} · ${b.days} día(s)`, b.amount))
+  ).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+
   const pendientes = APROBACIONES.filter(b => b.status === 'pendiente_aprobacion');
   const cnt = document.getElementById('nav-count-aprobaciones');
   if(cnt) cnt.textContent = pendientes.length;
 
   if(!APROBACIONES.length){
-    cuerpo.innerHTML = '<tr><td colspan="8" class="empty-note">Todavía no hay reservas de alojamiento.</td></tr>';
+    cuerpo.innerHTML = '<tr><td colspan="8" class="empty-note">Todavía no hay reservas por revisar.</td></tr>';
     return;
   }
+
   const ahora = Date.now();
   cuerpo.innerHTML = APROBACIONES.map(b => {
     const e = APROB_ESTADO[b.status] || [b.status,'b-gray'];
     const horas = Math.floor((ahora - new Date(b.created_at).getTime()) / 3600000);
-    /* Una solicitud sin revisar mantiene la habitación bloqueada: si lleva más
-       de un día esperando, debe saltar a la vista. */
+    /* Una solicitud sin revisar mantiene el cupo bloqueado: si lleva más de un
+       día esperando, debe saltar a la vista. */
     const tarde = b.status === 'pendiente_aprobacion' && horas >= 24;
     const decision = b.status === 'pendiente_aprobacion'
-      ? `<button class="link-btn" onclick="decidirReserva('${b.id}','confirmada')">Aprobar</button>
-         <button class="link-btn" style="color:#C0122D" onclick="decidirReserva('${b.id}','rechazada')">Rechazar</button>`
+      ? `<button class="link-btn" onclick="decidirReserva('${b.tabla}','${b.id}','confirmada')">Aprobar</button>
+         <button class="link-btn" style="color:#C0122D" onclick="decidirReserva('${b.tabla}','${b.id}','rechazada')">Rechazar</button>`
       : `<span class="cell-sub">${b.revisado_en ? new Date(b.revisado_en).toLocaleDateString('es-VE') : '—'}</span>`;
     return `<tr${tarde ? ' style="background:#FFF7ED"' : ''}>
-      <td class="cell-strong">${b.ref}${tarde ? `<div class="cell-sub" style="color:#C0122D">Esperando ${horas}h</div>` : ''}</td>
-      <td class="cell-strong">${b.guest_nombre || 'Huésped'}<div class="cell-sub">${b.guest_telefono || ''}</div></td>
-      <td>${(b.providers&&b.providers.business_name)||'—'}<div class="cell-sub">${(b.room_types&&b.room_types.nombre)||''}</div></td>
-      <td class="cell-sub">${b.check_in} → ${b.check_out}<div>${b.noches}n · ${b.habitaciones} hab.</div></td>
-      <td class="tabular cell-strong">$${b.monto_pagado}<div class="cell-sub">de $${b.monto_total}</div></td>
-      <td class="cell-sub">${b.comprobante_metodo||'—'}<div>${b.comprobante_referencia||''}</div></td>
-      <td>${b.comprobante_url ? `<button class="link-btn" onclick="verComprobante('${b.comprobante_url}')">Ver →</button>` : '<span class="cell-sub">Sin comprobante</span>'}</td>
+      <td class="cell-strong">${esc(b.codigo)}<div class="cell-sub">${esc(b.etiqueta)}</div>${tarde ? `<div class="cell-sub" style="color:#C0122D">Esperando ${horas}h</div>` : ''}</td>
+      <td class="cell-strong">${esc(b.cliente)}<div class="cell-sub">${esc(b.contacto)}</div></td>
+      <td>${esc(b.negocio)}</td>
+      <td class="cell-sub">${esc(b.detalle)}</td>
+      <td class="tabular cell-strong">$${b.pagado.toFixed(2)}<div class="cell-sub">de $${b.total.toFixed(2)}</div></td>
+      <td class="cell-sub">${esc(b.metodo||'—')}<div>${esc(b.referencia||'')}</div></td>
+      <td>${b.comprobante ? `<button class="link-btn" onclick="verComprobante('${b.comprobante}')">Ver →</button>` : '<span class="cell-sub">Sin comprobante</span>'}</td>
       <td><span class="badge ${e[1]}"><span class="dot"></span>${e[0]}</span><div style="margin-top:6px">${decision}</div></td>
     </tr>`;
   }).join('');
@@ -977,21 +1039,124 @@ async function verComprobante(ruta){
   window.open(data.signedUrl, '_blank', 'noopener');
 }
 
-async function decidirReserva(id, decision){
-  const b = APROBACIONES.find(x => x.id === id);
+/* Al decidir, el viajero recibe el voucher definitivo o el motivo del
+   rechazo. Que el correo falle no bloquea la decisión. */
+async function enviarVoucherPorCorreo(codigo){
+  try {
+    await fetch(SUPABASE_URL + '/functions/v1/enviar-voucher', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codigo })
+    });
+  } catch (e) { console.warn('No se pudo enviar el voucher:', e); }
+}
+
+async function decidirReserva(tabla, id, decision){
   let motivo = null;
   if(decision === 'rechazada'){
-    motivo = prompt('¿Por qué se rechaza? El huésped lo verá.\n(Ej: el comprobante no corresponde al monto)');
+    motivo = prompt('¿Por qué se rechaza? El viajero lo verá.\n(Ej: el comprobante no corresponde al monto)');
     if(motivo === null) return;
+    if(!motivo.trim()){ showToast('Hace falta el motivo: el viajero tiene derecho a saber por qué', 'warn'); return; }
   }
-  const { error } = await sb.from('room_bookings')
+  const { error } = await sb.from(tabla)
     .update({ status: decision, motivo_rechazo: motivo, revisado_en: new Date().toISOString() })
     .eq('id', id);
   if(error){ showToast('Error: ' + error.message, 'warn'); return; }
+
+  const reserva = APROBACIONES.find(x => x.id === id);
+  if(reserva && reserva.codigo) await enviarVoucherPorCorreo(reserva.codigo);
+
   await cargarAprobaciones();
   showToast(decision === 'confirmada'
-    ? 'Reserva confirmada — el alojamiento ya la ve en su recepción'
-    : 'Reserva rechazada — la habitación volvió a quedar libre', decision === 'confirmada' ? 'success' : 'warn');
+    ? 'Reserva confirmada — el proveedor ya la ve en su panel'
+    : 'Reserva rechazada — el cupo volvió a quedar libre', decision === 'confirmada' ? 'success' : 'warn');
+}
+
+/* --------------------------------------------------------------------------
+   TASAS DE CAMBIO
+   Una tasa vieja convierte un precio correcto en uno equivocado. Se guardan
+   con cada reserva, así que cambiarlas no altera lo ya vendido.
+   -------------------------------------------------------------------------- */
+async function cargarTasas(){
+  const cont = document.getElementById('tasas-form');
+  if(!cont) return;
+  const { data, error } = await sb.from('exchange_rates').select('*').order('moneda');
+  if(error){ cont.innerHTML = '<p class="empty-note">No se pudieron cargar: '+error.message+'</p>'; return; }
+  const nombre = { COP: 'Pesos colombianos', VES: 'Bolívares', EUR: 'Euros' };
+  cont.innerHTML = (data||[]).map(r => `
+    <div class="disp-row">
+      <div><strong>1 USD = </strong>
+        <input class="input" style="width:140px;display:inline-block" type="number" step="0.01"
+               id="tasa-${r.moneda}" value="${r.valor}">
+        <strong> ${r.moneda}</strong>
+        <div class="cell-sub">${nombre[r.moneda]||r.moneda} · actualizada ${new Date(r.actualizado_en).toLocaleDateString('es-VE')}</div>
+      </div>
+      <button class="btn btn-orange" onclick="guardarTasa('${r.moneda}')">Guardar</button>
+    </div>`).join('');
+}
+
+async function guardarTasa(moneda){
+  const campo = document.getElementById('tasa-'+moneda);
+  const valor = Number(campo.value);
+  if(!(valor > 0)){ showToast('La tasa tiene que ser mayor que cero', 'warn'); return; }
+  const { error } = await sb.from('exchange_rates')
+    .update({ valor, actualizado_en: new Date().toISOString() })
+    .eq('moneda', moneda);
+  if(error){ showToast('Error: ' + error.message, 'warn'); return; }
+  showToast('Tasa de ' + moneda + ' actualizada', 'success');
+  cargarTasas();
+}
+
+/* --------------------------------------------------------------------------
+   SOLICITUDES DEL VIAJERO
+   -------------------------------------------------------------------------- */
+const TIPO_SOLICITUD = { reembolso:'Reembolso', cambio_fecha:'Cambio de fecha', correccion_datos:'Corrección de datos' };
+
+async function cargarSolicitudes(){
+  const cuerpo = document.getElementById('tbl-solicitudes');
+  if(!cuerpo) return;
+  const { data, error } = await sb.from('booking_requests').select('*').order('created_at', { ascending:false });
+  if(error){ cuerpo.innerHTML = '<tr><td colspan="6" class="empty-note">No se pudieron cargar: '+error.message+'</td></tr>'; return; }
+  const nuevas = (data||[]).filter(r => r.status === 'nueva');
+  const cnt = document.getElementById('nav-count-solicitudes');
+  if(cnt) cnt.textContent = nuevas.length;
+  if(!(data||[]).length){
+    cuerpo.innerHTML = '<tr><td colspan="6" class="empty-note">No hay solicitudes.</td></tr>';
+    return;
+  }
+  cuerpo.innerHTML = data.map(r => `
+    <tr>
+      <td class="cell-strong">${esc(r.codigo)}</td>
+      <td>${esc(TIPO_SOLICITUD[r.tipo]||r.tipo)}</td>
+      <td class="cell-sub">${esc(r.detalle)}</td>
+      <td class="cell-sub">${new Date(r.created_at).toLocaleDateString('es-VE')}</td>
+      <td><span class="badge ${r.status==='nueva'?'b-orange':r.status==='atendida'?'b-green':'b-gray'}"><span class="dot"></span>${r.status}</span></td>
+      <td>${r.status==='nueva'
+        ? `<button class="link-btn" onclick="responderSolicitud('${r.id}','${esc(r.codigo)}','atendida')">Atender</button>
+           <button class="link-btn" style="color:#C0122D" onclick="responderSolicitud('${r.id}','${esc(r.codigo)}','rechazada')">Rechazar</button>`
+        : '<span class="cell-sub">—</span>'}</td>
+    </tr>`).join('');
+}
+
+async function responderSolicitud(id, codigo, decision){
+  const respuesta = prompt('Escribe la respuesta que verá el viajero en el chat de su reserva:');
+  if(respuesta === null) return;
+  if(!respuesta.trim()){ showToast('La respuesta no puede ir vacía', 'warn'); return; }
+
+  const { error } = await sb.from('booking_requests')
+    .update({ status: decision, respuesta: respuesta.trim(), resuelto_en: new Date().toISOString() })
+    .eq('id', id);
+  if(error){ showToast('Error: ' + error.message, 'warn'); return; }
+
+  /* La respuesta va al chat de la reserva: es donde el viajero la busca. */
+  const { data: conv } = await sb.from('conversations').select('id').eq('codigo', codigo).maybeSingle();
+  if(conv){
+    await sb.from('messages').insert({
+      conversation_id: conv.id, autor: 'admin', autor_nombre: 'Táchira GOO!!!',
+      cuerpo: respuesta.trim()
+    });
+  }
+  await cargarSolicitudes();
+  showToast('Solicitud respondida', 'success');
 }
 
 async function cargarDatosReales(){
@@ -1229,6 +1394,8 @@ async function loadRealData(){
   updateNavCounts(); renderProveedores(); renderPagos(); renderDisputas();
   renderClientes(); renderReservas(); renderReportes(); renderCotizaciones();
   cargarAprobaciones();
+  cargarSolicitudes();
+  cargarTasas();
   loadRealProviders();
   const { data: bookings, error } = await sb.from('bookings')
     .select('*, listings(title), providers(business_name), profiles(full_name)')
