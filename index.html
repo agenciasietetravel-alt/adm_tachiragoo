@@ -776,7 +776,16 @@ document.getElementById('form-credentials').addEventListener('submit', async fun
       loginError(signUpErr ? signUpErr.message : 'No se pudo crear la cuenta. Revisa tu correo para confirmarla y vuelve a intentar.');
       return;
     }
-    await sb.from('profiles').upsert({ id: signUpData.user.id, role: 'admin' });
+    /* El puesto se reclama por función: la base de datos comprueba que no
+       haya ya un administrador. Escribir role='admin' desde aquí ya no
+       funciona, y así tampoco le funciona a nadie más. */
+    const { error: reclamoErr } = await sb.rpc('reclamar_admin');
+    if(reclamoErr){
+      await sb.auth.signOut();
+      btn.disabled = false;
+      loginError(reclamoErr.message);
+      return;
+    }
     signInData = signUpData;
   } else {
     const { data: profile } = await sb.from('profiles').select('role').eq('id', signInData.user.id).maybeSingle();
