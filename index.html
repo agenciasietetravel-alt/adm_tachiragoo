@@ -486,6 +486,9 @@ tbody tr:last-child td{ border-bottom:none; }
       <button class="nav-item" data-page="solicitudes">
         <span class="ic">✉</span> Solicitudes <span class="badge-count" id="nav-count-solicitudes">0</span>
       </button>
+      <button class="nav-item" data-page="cobros">
+        <span class="ic">▤</span> Métodos de cobro
+      </button>
       <button class="nav-item" data-page="tasas">
         <span class="ic">$</span> Tasas de cambio
       </button>
@@ -602,6 +605,15 @@ tbody tr:last-child td{ border-bottom:none; }
           <div class="table-wrap"><table><thead><tr><th>Código</th><th>Tipo</th><th>Detalle</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="tbl-solicitudes"><tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Cargando...</td></tr></tbody></table></div>
         </div>
       </section>
+      <section class="page" id="page-cobros">
+        <div class="panel">
+          <div class="panel-head"><h3>Métodos de cobro</h3><span class="hint">Lo que el viajero ve al pagar</span></div>
+          <div class="panel-body">
+            <p class="hint" style="margin-bottom:14px">Un método apagado no le aparece a nadie. Enciéndelo solo cuando sus datos sean los reales: lo que escribas aquí es a donde va a transferir la gente.</p>
+            <div id="cobrosLista"></div>
+          </div>
+        </div>
+      </section>
       <section class="page" id="page-tasas">
         <div class="panel">
           <div class="panel-head"><h3>Tasas de cambio</h3><span class="hint">Se usan para mostrar precios en pesos y bolívares</span></div>
@@ -712,7 +724,7 @@ function badgeEstadoDisputa(e){ return e==='Abierta' ? '<span class="badge b-ora
 function badgeDoc(e){ if(e==='Aprobado') return '<span class="badge b-green"><span class="dot"></span>Aprobado</span>'; if(e==='Rechazado') return '<span class="badge b-red"><span class="dot"></span>Rechazado</span>'; return '<span class="badge b-orange"><span class="dot"></span>En revisión</span>'; }
 function showToast(msg, type){ const wrap=document.getElementById('toast-wrap'); const t=document.createElement('div'); t.className='toast'+(type?' '+type:''); t.textContent=msg; wrap.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2600); }
 function updateNavCounts(){ document.getElementById('nav-count-proveedores').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('nav-count-pagos').textContent = PAGOS_PENDIENTES.length; document.getElementById('nav-count-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-disputas').textContent = DISPUTAS.filter(d=>d.estado==='Abierta').length; document.getElementById('ticker-verif').textContent = PROVEEDORES.filter(p=>p.estado==='Pendiente verificación').length; document.getElementById('ticker-pagos').textContent = money(PAGOS_PENDIENTES.reduce((a,b)=>a+b.monto,0)); }
-const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', vehiculos:'Vehículos · cola de revisión', cotizaciones:'Cotizaciones de viaje', aprobaciones:'Aprobar pagos de reserva', solicitudes:'Solicitudes de los viajeros', tasas:'Tasas de cambio', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
+const PAGE_TITLES = { dashboard:'Dashboard general', proveedores:'Proveedores', pagos:'Pagos y liquidaciones', disputas:'Disputas', clientes:'Clientes', reservas:'Reservas (vista global)', vehiculos:'Vehículos · cola de revisión', cotizaciones:'Cotizaciones de viaje', aprobaciones:'Aprobar pagos de reserva', solicitudes:'Solicitudes de los viajeros', tasas:'Tasas de cambio', cobros:'Métodos de cobro', config:'Configuración de plataforma', reportes:'Reportes y analítica' };
 document.querySelectorAll('.nav-item').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); const page = btn.dataset.page; document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-'+page).classList.add('active'); document.getElementById('page-title').textContent = PAGE_TITLES[page]; document.getElementById('sidebar').classList.remove('open'); }); });
 function renderWeeklyChart(){ const data=[42,38,55,49,61,58,66,72]; const max=Math.max(...data); document.getElementById('weekly-chart').innerHTML = data.map((v,i)=>`<div class="bar-col"><div class="bar-val">${v}</div><div class="bar" style="height:${(v/max*100)}%"></div><div class="bar-label">S${i+1}</div></div>`).join(''); }
 function renderAlerts(){ const alerts=[ {ic:'warn', t1:'2 proveedores esperan verificación de documentos', t2:'Páramo Adventures, Posada Los Frailejones', link:'proveedores'}, {ic:'danger', t1:'3 disputas sin resolver', t2:'La más antigua lleva 4 días abierta', link:'disputas'}, , ]; document.getElementById('alerts-feed').innerHTML = alerts.map(a=>`<div class="alert-item"><div class="alert-ic ${a.ic}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="alert-txt"><div class="t1">${a.t1}</div><div class="t2">${a.t2}</div></div><button class="alert-link" onclick="goTo('${a.link}')">Ver</button></div>`).join(''); }
@@ -1113,6 +1125,81 @@ async function guardarTasa(moneda){
   if(error){ showToast('Error: ' + error.message, 'warn'); return; }
   showToast('Tasa de ' + moneda + ' actualizada', 'success');
   cargarTasas();
+  cargarCobros();
+}
+
+/* --------------------------------------------------------------------------
+   MÉTODOS DE COBRO
+   Estaban escritos en el código del portal cliente con datos de ejemplo.
+   -------------------------------------------------------------------------- */
+let COBROS = [];
+
+async function cargarCobros(){
+  const cont = document.getElementById('cobrosLista');
+  if(!cont) return;
+  const { data, error } = await sb.from('payment_methods').select('*').order('orden');
+  if(error){ cont.innerHTML = '<p class="empty-note">No se pudieron cargar: '+esc(error.message)+'</p>'; return; }
+  COBROS = data || [];
+  cont.innerHTML = COBROS.map(m => `
+    <div style="border:1px solid var(--line);border-radius:11px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px">
+        <div>
+          <strong>${esc(m.etiqueta)}</strong>
+          <span class="badge ${m.activo ? 'b-green' : 'b-gray'}" style="margin-left:8px"><span class="dot"></span>${m.activo ? 'Visible' : 'Apagado'}</span>
+          <div class="cell-sub">${esc(m.moneda || '')} · ${m.tipo === 'enlace' ? 'enlace de cobro (tarjeta)' : 'transferencia'}</div>
+        </div>
+        <button class="btn ${m.activo ? 'btn-outline' : 'btn-orange'}" onclick="alternarCobro('${m.id}')">
+          ${m.activo ? 'Apagar' : 'Encender'}
+        </button>
+      </div>
+      ${m.tipo === 'enlace'
+        ? `<label style="display:block;font-size:12px;font-weight:600;color:var(--gray);margin-bottom:4px">Enlace de la pasarela de pago</label>
+           <input class="input" id="cobro-enlace-${m.id}" value="${esc(m.enlace || '')}" placeholder="https://... (Mercado Pago, PayPal, Stripe)" style="margin-bottom:10px">`
+        : ''}
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--gray);margin-bottom:4px">
+        ${m.tipo === 'enlace' ? 'Qué le explicas al viajero' : 'Datos de cobro que verá el viajero'}
+      </label>
+      <textarea class="input" id="cobro-datos-${m.id}" rows="2"
+        placeholder="${m.tipo === 'enlace' ? 'Ej. Al terminar, vuelve y adjunta el comprobante.' : 'Ej. Banco: BDV · Tel: 0414-0000000 · CI: V-00000000'}">${esc(m.instrucciones || '')}</textarea>
+      <button class="btn btn-blue btn-sm" style="margin-top:10px" onclick="guardarCobro('${m.id}')">Guardar</button>
+    </div>`).join('');
+}
+
+async function alternarCobro(id){
+  const m = COBROS.find(x => x.id === id);
+  if(!m) return;
+  /* Encender un método sin datos manda a la gente a transferir a ninguna parte. */
+  if(!m.activo){
+    if(m.tipo === 'enlace' && !(m.enlace || '').trim()){
+      showToast('Primero guarda el enlace de la pasarela', 'warn'); return;
+    }
+    if(m.tipo !== 'enlace' && !(m.instrucciones || '').trim()){
+      showToast('Primero guarda los datos de cobro', 'warn'); return;
+    }
+  }
+  const { error } = await sb.from('payment_methods')
+    .update({ activo: !m.activo, actualizado_en: new Date().toISOString() }).eq('id', id);
+  if(error){ showToast('Error: ' + error.message, 'warn'); return; }
+  await cargarCobros();
+  showToast(m.activo ? 'Método apagado' : 'Método visible para los viajeros', m.activo ? 'warn' : 'success');
+}
+
+async function guardarCobro(id){
+  const m = COBROS.find(x => x.id === id);
+  if(!m) return;
+  const cambios = { instrucciones: document.getElementById('cobro-datos-'+id).value.trim() || null,
+                    actualizado_en: new Date().toISOString() };
+  if(m.tipo === 'enlace'){
+    const enlace = document.getElementById('cobro-enlace-'+id).value.trim();
+    if(enlace && !/^https:\/\//i.test(enlace)){
+      showToast('El enlace de cobro tiene que empezar por https://', 'warn'); return;
+    }
+    cambios.enlace = enlace || null;
+  }
+  const { error } = await sb.from('payment_methods').update(cambios).eq('id', id);
+  if(error){ showToast('Error: ' + error.message, 'warn'); return; }
+  await cargarCobros();
+  showToast('Guardado', 'success');
 }
 
 /* --------------------------------------------------------------------------
