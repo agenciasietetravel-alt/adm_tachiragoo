@@ -696,6 +696,7 @@ const CATEGORIAS = ['Tour de Aventura','Posada','Tour Gastronómico','Tour Cultu
    hay en Supabase. Antes eran diez proveedores, quince reservas y siete pagos
    inventados: cifras que parecían actividad real y no lo eran. */
 let PROVEEDORES = [];
+let GMV_REAL = [];
 let PAGOS_PENDIENTES = [];
 let PAGOS_HISTORIAL = [];
 let DISPUTAS = [];
@@ -737,8 +738,29 @@ function reactivarProveedor(pid){ const p=PROVEEDORES.find(x=>x.id===pid); p.est
 function closeDrawer(){ document.getElementById('overlay').classList.remove('open'); }
 document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeDrawer(); });
 function renderPagos(){ document.getElementById('tbl-pagos-pendientes').innerHTML = PAGOS_PENDIENTES.length ? PAGOS_PENDIENTES.map((p,i)=>`<tr id="pago-row-${i}"><td class="cell-strong">${p.prov}</td><td class="tabular cell-strong">${money(p.monto)}</td><td class="tabular">${p.reservas}</td><td>${p.metodo}</td><td>${p.estado==='Pendiente' ? '<span class="badge b-orange"><span class="dot"></span>Pendiente</span>' : '<span class="badge b-green"><span class="dot"></span>Pagado</span>'}</td><td>${p.estado==='Pendiente' ? `<button class="btn sm btn-primary" onclick="aprobarPago(${i})">Aprobar y pagar</button>` : `<span class="cell-sub">Liberado</span>`}</td></tr>`).join('') : `<tr><td colspan="6" class="empty-note">No hay liquidaciones pendientes.</td></tr>`; document.getElementById('tbl-pagos-historial').innerHTML = PAGOS_HISTORIAL.map(h=>`<tr><td class="cell-strong">${h.prov}</td><td class="tabular">${money(h.monto)}</td><td>${h.metodo}</td><td>${fecha(h.fecha)}</td><td class="cell-sub tabular">${h.ref}</td></tr>`).join(''); }
-function aprobarPago(i){ const p = PAGOS_PENDIENTES[i]; p.estado='Pagado'; showToast('Pago de '+money(p.monto)+' liberado a '+p.prov,'success'); updateNavCounts(); renderPagos(); }
-document.getElementById('btn-pagar-todos').addEventListener('click', ()=>{ const pend = PAGOS_PENDIENTES.filter(p=>p.estado==='Pendiente'); if(!pend.length){ showToast('No hay pagos pendientes por liberar'); return; } const total = pend.reduce((a,b)=>a+b.monto,0); pend.forEach(p=>p.estado='Pagado'); showToast(pend.length+' pagos liberados por un total de '+money(total),'success'); updateNavCounts(); renderPagos(); });
+async function aprobarPago(i){
+  const p = PAGOS_PENDIENTES[i];
+  if(!p || !p.id){ showToast('Esa liquidación ya no existe.','error'); return; }
+  /* Antes esto solo cambiaba una variable en memoria: el aviso decía que el
+     pago se había liberado y en la base no cambiaba nada. */
+  const { error } = await sb.from('mkt_liquidaciones')
+    .update({ estado: 'pagada' }).eq('id', p.id);
+  if(error){ showToast('No se pudo marcar como pagada: ' + error.message, 'error'); return; }
+  p.estado = 'Pagado';
+  showToast('Pago de '+money(p.monto)+' liberado a '+p.prov,'success');
+  updateNavCounts(); renderPagos();
+}
+document.getElementById('btn-pagar-todos').addEventListener('click', async ()=>{
+  const pend = PAGOS_PENDIENTES.filter(p=>p.estado==='Pendiente' && p.id);
+  if(!pend.length){ showToast('No hay pagos pendientes por liberar'); return; }
+  const { error } = await sb.from('mkt_liquidaciones')
+    .update({ estado:'pagada' }).in('id', pend.map(p=>p.id));
+  if(error){ showToast('No se pudieron liberar: ' + error.message, 'error'); return; }
+  const total = pend.reduce((a,b)=>a+b.monto,0);
+  pend.forEach(p=>p.estado='Pagado');
+  showToast(pend.length+' pagos liberados por un total de '+money(total),'success');
+  updateNavCounts(); renderPagos();
+});
 document.getElementById('ciclo-select').addEventListener('change', e=>{ showToast('Ciclo de liquidación actualizado a: '+e.target.value,'success'); });
 function renderDisputas(){ const estado = document.getElementById('filtro-disp-estado').value; const rows = DISPUTAS.filter(d=>!estado || d.estado===estado); document.getElementById('tbl-disputas').innerHTML = rows.length ? rows.map(d=>`<tr><td class="cell-strong">${d.cliente}</td><td>${d.proveedor}</td><td>${d.tipo}</td><td>${badgeEstadoDisputa(d.estado)}</td><td>${fecha(d.fecha)}</td><td><button class="link-btn" onclick="abrirDisputa('${d.id}')">Ver caso →</button></td></tr>`).join('') : `<tr><td colspan="6" class="empty-note">No hay disputas en este estado.</td></tr>`; }
 function abrirDisputa(id){ const d = DISPUTAS.find(x=>x.id===id); const drawer = document.getElementById('drawer'); drawer.innerHTML = `<div class="drawer-head"><div><div class="eyebrow">Caso de disputa</div><h2>${d.cliente} vs. ${d.proveedor}</h2></div><button class="drawer-close" onclick="closeDrawer()">✕</button></div><div class="drawer-body"><div class="dsection"><div class="kv-grid"><div class="kv"><div class="k">Tipo</div><div class="v">${d.tipo}</div></div><div class="kv"><div class="k">Estado</div><div class="v">${badgeEstadoDisputa(d.estado)}</div></div><div class="kv"><div class="k">Fecha</div><div class="v">${fecha(d.fecha)}</div></div>${d.resolucion ? `<div class="kv"><div class="k">Resolución</div><div class="v">${d.resolucion}</div></div>` : ''}</div></div><div class="dsection"><h4>Evidencia — Cliente</h4><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div class="evidence-thumb">Captura de chat.jpg</div><div class="evidence-thumb">Foto adjunta.jpg</div></div></div><div class="dsection"><h4>Evidencia — Proveedor</h4><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div class="evidence-thumb">Comprobante de servicio.jpg</div></div></div>${d.estado==='Abierta' ? `<div class="dsection"><h4>Resolución del caso</h4><div style="display:flex; flex-direction:column; gap:10px;"><button class="btn btn-success-outline" onclick="resolverDisputa('${d.id}','Liberar pago al proveedor')">Liberar pago al proveedor</button><button class="btn btn-danger-outline" onclick="resolverDisputa('${d.id}','Reembolsar al cliente')">Reembolsar al cliente</button><button class="btn btn-orange" onclick="resolverDisputa('${d.id}','Aplicar strike al proveedor')">Aplicar strike al proveedor</button></div></div>` : ''}</div>`; document.getElementById('overlay').classList.add('open'); }
@@ -750,7 +772,18 @@ function renderReservas(){ const estado = document.getElementById('filtro-res-es
 function renderConfig(){ document.getElementById('toggle-categorias').innerHTML = CATEGORIAS.map((c,i)=>`<div class="toggle-row"><div class="tname">${c}</div><label class="switch"><input type="checkbox" checked onchange="showToast('${c} '+(this.checked?'habilitada':'deshabilitada'))"><span class="slider"></span></label></div>`).join(''); document.getElementById('toggle-municipios').innerHTML = MUNICIPIOS.map((m,i)=>`<div class="toggle-row"><div class="tname">${m}</div><label class="switch"><input type="checkbox" ${i<6?'checked':''} onchange="showToast('${m} '+(this.checked?'habilitado':'deshabilitado'))"><span class="slider"></span></label></div>`).join(''); document.getElementById('legal-editor').value = LEGAL_TEXTOS.terminos; }
 document.querySelectorAll('.tab-btn[data-tab]').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.tab-btn[data-tab]').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tabpage').forEach(p=>p.classList.remove('active')); document.getElementById(btn.dataset.tab).classList.add('active'); }); });
 document.querySelectorAll('.tab-btn[data-legaltab]').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('.tab-btn[data-legaltab]').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.getElementById('legal-editor').value = LEGAL_TEXTOS[btn.dataset.legaltab]; }); });
-function renderReportes(){ const maxR = Math.max(...RANKING_TOP.map(r=>r.v)); document.getElementById('ranking-top').innerHTML = RANKING_TOP.map(r=>`<div class="hbar-row"><div class="name">${r.n}</div><div class="hbar-track"><div class="hbar-fill" style="width:${r.v/maxR*100}%"></div></div><div class="hbar-num tabular">${r.v} res.</div></div>`).join(''); const maxD = Math.max(...DEMANDA_MUNICIPIO.map(d=>d.v)); document.getElementById('demanda-municipio').innerHTML = DEMANDA_MUNICIPIO.map(d=>`<div class="hbar-row"><div class="name">${d.m}</div><div class="hbar-track"><div class="hbar-fill orange" style="width:${d.v/maxD*100}%"></div></div><div class="hbar-num tabular">${d.v} pts.</div></div>`).join(''); const gmv=[28400,31200,35900,40100,44700,48320]; const meses=['Feb','Mar','Abr','May','Jun','Jul']; const maxG=Math.max(...gmv); document.getElementById('gmv-chart').innerHTML = gmv.map((v,i)=>`<div class="bar-col"><div class="bar-val">$${(v/1000).toFixed(1)}k</div><div class="bar" style="height:${v/maxG*100}%"></div><div class="bar-label">${meses[i]}</div></div>`).join(''); }
+function renderReportes(){ const maxR = Math.max(...RANKING_TOP.map(r=>r.v)); document.getElementById('ranking-top').innerHTML = RANKING_TOP.map(r=>`<div class="hbar-row"><div class="name">${r.n}</div><div class="hbar-track"><div class="hbar-fill" style="width:${r.v/maxR*100}%"></div></div><div class="hbar-num tabular">${r.v} res.</div></div>`).join(''); const maxD = Math.max(...DEMANDA_MUNICIPIO.map(d=>d.v)); document.getElementById('demanda-municipio').innerHTML = DEMANDA_MUNICIPIO.map(d=>`<div class="hbar-row"><div class="name">${d.m}</div><div class="hbar-track"><div class="hbar-fill orange" style="width:${d.v/maxD*100}%"></div></div><div class="hbar-num tabular">${d.v} pts.</div></div>`).join(''); const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const serie = (typeof GMV_REAL !== 'undefined' ? GMV_REAL : []);
+  const caja = document.getElementById('gmv-chart');
+  if(!serie.length){
+    caja.innerHTML = '<div class="empty-note" style="padding:28px 10px">Todavía no hay reservas confirmadas que medir.</div>';
+    return;
+  }
+  const maxG = Math.max(...serie.map(x=>x.v)) || 1;
+  caja.innerHTML = serie.map(x=>{
+    const m = MES[Number(String(x.mes).slice(5,7)) - 1] || x.mes;
+    return `<div class="bar-col"><div class="bar-val">$${(x.v/1000).toFixed(1)}k</div><div class="bar" style="height:${x.v/maxG*100}%"></div><div class="bar-label">${m}</div></div>`;
+  }).join(''); }
 function fillMunicipioSelects(){ ['filtro-prov-municipio','filtro-res-municipio'].forEach(id=>{ const sel=document.getElementById(id); MUNICIPIOS.forEach(m=>{ const o=document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o); }); }); }
 ['filtro-cot-tipo','filtro-cot-estado'].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener('change', renderCotizaciones); });
 ['filtro-prov-estado','filtro-prov-municipio','buscar-prov'].forEach(id=>document.getElementById(id).addEventListener('input', renderProveedores));
@@ -1261,7 +1294,7 @@ async function cargarDatosReales(){
     sb.from('listings').select('id, title, provider_id, municipio, category, status'),
     sb.from('bookings').select('*, listings(title, municipio), providers(business_name), profiles(full_name)'),
     sb.from('profiles').select('id, full_name, role'),
-    sb.from('payouts').select('*, providers(business_name)'),
+    sb.from('mkt_liquidaciones').select('*, providers(business_name)'),
     sb.from('disputes').select('*, bookings(ref), profiles(full_name)'),
     sb.from('reviews').select('listing_id, rating'),
     sb.from('travel_quotes').select('*').order('created_at', { ascending:false })
@@ -1312,8 +1345,10 @@ async function cargarDatosReales(){
     const nombre = (b.profiles && b.profiles.full_name) || 'Viajero';
     const c = porCliente[b.customer_id] || (porCliente[b.customer_id] = { nombre, email:'—', reservas:0, gasto:0, pendientes:0 });
     c.reservas += 1;
-    if (b.status !== 'cancelled') c.gasto += Number(b.amount) || 0;
-    if (b.status === 'pending') c.pendientes += 1;
+    /* Los estados del sistema están en español. Comparar contra 'cancelled'
+       y 'pending' no coincidía nunca: las canceladas contaban como gasto. */
+    if (!['cancelada','rechazada'].includes(b.status)) c.gasto += Number(b.amount) || 0;
+    if (b.status === 'pendiente_aprobacion') c.pendientes += 1;
   });
   CLIENTES = Object.values(porCliente).map(c => ({
     nombre: c.nombre, email: c.email, reservas: c.reservas, gasto: c.gasto,
@@ -1322,20 +1357,32 @@ async function cargarDatosReales(){
 
   /* --- Pagos --- */
   const pagos = pay.data || [];
-  PAGOS_PENDIENTES = pagos.filter(x => x.status === 'pending').map(x => ({
+  PAGOS_PENDIENTES = pagos.filter(x => x.estado === 'pendiente').map(x => ({
+    id: x.id,
     prov: (x.providers && x.providers.business_name) || '—',
-    monto: Number(x.amount) || 0,
-    reservas: x.bookings_count || 0,
+    monto: Number(x.neto) || 0,
+    reservas: x.reservas || 0,
     metodo: '—',
     estado: 'Pendiente'
   }));
-  PAGOS_HISTORIAL = pagos.filter(x => x.status === 'paid').map(x => ({
+  PAGOS_HISTORIAL = pagos.filter(x => x.estado === 'pagada').map(x => ({
     prov: (x.providers && x.providers.business_name) || '—',
-    monto: Number(x.amount) || 0,
+    monto: Number(x.neto) || 0,
     metodo: '—',
-    fecha: soloFecha(x.period_end),
-    ref: x.payment_ref || '—'
+    fecha: soloFecha(x.hasta),
+    ref: x.referencia || '—'
   }));
+
+  /* GMV real: lo que entró por reservas firmes, mes a mes. Antes eran seis
+     números escritos a mano que parecían datos. */
+  const { data: cargos } = await sb.from('mkt_cargos')
+    .select('total_viajero, created_at, estado').eq('estado','firme');
+  const porMes = {};
+  (cargos || []).forEach(c => {
+    const k = String(c.created_at).slice(0,7);
+    porMes[k] = (porMes[k] || 0) + Number(c.total_viajero || 0);
+  });
+  GMV_REAL = Object.keys(porMes).sort().slice(-6).map(k => ({ mes: k, v: porMes[k] }));
 
   /* --- Disputas --- */
   DISPUTAS = (disp.data || []).map(d => ({
