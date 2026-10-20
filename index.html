@@ -2,7 +2,7 @@
 <html lang="es"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel de Administrador — Táchira GOO!!!</title>
+<title>Panel de Administrador — Andes GOO!</title>
 <style>
 :root{
   --blue:#0052CC;
@@ -394,7 +394,7 @@ tbody tr:last-child td{ border-bottom:none; }
     <div class="login-step active" id="step-credentials">
       <div class="login-brand">
         <div class="mark">TG</div>
-        <div><div class="name">Táchira GOO!!!</div><div class="role">Panel Admin</div></div>
+        <div><div class="name">Andes GOO!</div><div class="role">Panel Admin</div></div>
       </div>
       <h1 class="login-title">Acceso restringido</h1>
       <p class="login-sub">Este panel controla pagos, disputas y datos de proveedores. Inicia sesión con tu cuenta de administrador.</p>
@@ -458,7 +458,7 @@ tbody tr:last-child td{ border-bottom:none; }
     <div class="sidebar-brand">
       <div class="mark">TG</div>
       <div>
-        <div class="name">Táchira GOO!!!</div>
+        <div class="name">Andes GOO!</div>
         <div class="role">Panel Admin</div>
       </div>
     </div>
@@ -547,7 +547,7 @@ tbody tr:last-child td{ border-bottom:none; }
     </div>
     <div class="pageheader">
       <div class="titles">
-        <div class="eyebrow">Táchira GOO!!! · Panel Admin</div>
+        <div class="eyebrow">Andes GOO! · Panel Admin</div>
         <h1 id="page-title">Dashboard general</h1>
       </div>
       <div class="header-actions">
@@ -663,7 +663,7 @@ tbody tr:last-child td{ border-bottom:none; }
       <section class="page" id="page-config">
         <div class="tabs"><button class="tab-btn active" data-tab="cfg-general">General</button><button class="tab-btn" data-tab="cfg-legal">Textos legales</button><button class="tab-btn" data-tab="cfg-categorias">Categorías y municipios</button></div>
         <div class="tabpage active" id="cfg-general"><div class="panel"><div class="panel-body">
-          <div class="form-row"><label>Comisión de la plataforma (%)</label><input class="input" style="width:140px" type="number" value="12" min="0" max="100"><div class="desc">Porcentaje que Táchira GOO!!! retiene sobre cada reserva confirmada.</div></div>
+          <div class="form-row"><label>Comisión de la plataforma (%)</label><input class="input" style="width:140px" type="number" value="12" min="0" max="100"><div class="desc">Porcentaje que Andes GOO! retiene sobre cada reserva confirmada.</div></div>
           <div class="form-row"><label>Política de cancelación por defecto</label><select class="select" style="width:100%"><option>Flexible — reembolso completo hasta 48h antes</option><option selected="">Moderada — reembolso 50% hasta 72h antes</option><option>Estricta — sin reembolso a menos de 7 días</option></select><div class="desc">Se aplica a proveedores que no definan una política propia.</div></div>
           <button class="btn btn-primary" onclick="showToast('Configuración general guardada','success')">Guardar cambios</button>
         </div></div></div>
@@ -706,10 +706,10 @@ let RANKING_TOP = [];
 let DEMANDA_MUNICIPIO = [];
 let COTIZACIONES = [];
 const LEGAL_TEXTOS = {
-  terminos: `TÉRMINOS Y CONDICIONES — TÁCHIRA GOO!!!
+  terminos: `TÉRMINOS Y CONDICIONES — ANDES GOO!
 
-1. Objeto\nTáchira GOO!!! actúa como intermediario tecnológico entre clientes y proveedores de servicios turísticos (tours, posadas y actividades) en el estado Táchira.\n\n2. Reservas y pagos\nToda reserva confirmada implica el pago de un anticipo mínimo del 30% del monto total, retenido en garantía hasta la confirmación del servicio por parte del proveedor.\n\n3. Responsabilidad\nLa plataforma no presta directamente los servicios turísticos; la ejecución de los mismos es responsabilidad exclusiva del proveedor verificado.`,
-  privacidad: `POLÍTICA DE PRIVACIDAD — TÁCHIRA GOO!!!
+1. Objeto\nAndes GOO! actúa como intermediario tecnológico entre clientes y proveedores de servicios turísticos (tours, posadas y actividades) en los Andes venezolanos.\n\n2. Reservas y pagos\nToda reserva confirmada implica el pago de un anticipo mínimo del 30% del monto total, retenido en garantía hasta la confirmación del servicio por parte del proveedor.\n\n3. Responsabilidad\nLa plataforma no presta directamente los servicios turísticos; la ejecución de los mismos es responsabilidad exclusiva del proveedor verificado.`,
+  privacidad: `POLÍTICA DE PRIVACIDAD — ANDES GOO!
 
 Recopilamos únicamente los datos necesarios para procesar reservas, pagos y verificación de proveedores. No compartimos información personal con terceros salvo cuando sea necesario para completar una transacción o por requerimiento legal.`,
   cancelacion: `POLÍTICA DE CANCELACIÓN POR DEFECTO
@@ -890,7 +890,7 @@ async function loadRealProviders(){
   }).join('');
 }
 
-/* Un micrositio a medio llenar se ve abandonado bajo la marca de Táchira GOO!!!.
+/* Un micrositio a medio llenar se ve abandonado bajo la marca de Andes GOO!
    Antes de publicarlo se exige lo mínimo para que la página tenga sentido. */
 function requisitosMicrositio(p){
   const falta = [];
@@ -1280,7 +1280,7 @@ async function responderSolicitud(id, codigo, decision){
   const { data: conv } = await sb.from('conversations').select('id').eq('codigo', codigo).maybeSingle();
   if(conv){
     await sb.from('messages').insert({
-      conversation_id: conv.id, autor: 'admin', autor_nombre: 'Táchira GOO!!!',
+      conversation_id: conv.id, autor: 'admin', autor_nombre: 'Andes GOO!',
       cuerpo: respuesta.trim()
     });
   }
